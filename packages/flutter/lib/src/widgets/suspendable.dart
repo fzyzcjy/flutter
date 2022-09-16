@@ -82,6 +82,14 @@ class RenderSuspendable extends RenderProxyBox {
     }
   }
 
+  // ref: [RenderOpacity], it can choose not to paint child at all
+  @override
+  bool paintsChild(RenderBox child) {
+    assert(child.parent == this);
+    return !suspending;
+  }
+
+  // ref: [RenderOpacity], it can choose not to paint child at all
   @override
   void paint(PaintingContext context, Offset offset) {
     _log('paint suspending=$suspending');

@@ -16,7 +16,7 @@ void main() {
       SuspendableCoordinator.instance.pseudoRemainTime = 4;
       await tester.pump();
     }
-    
+
     debugDumpRenderTree();
 
     debugPrintBeginFrameBanner = debugPrintEndFrameBanner = false;
