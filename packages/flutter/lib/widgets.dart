@@ -131,6 +131,7 @@ export 'src/widgets/snapshot_widget.dart';
 export 'src/widgets/spacer.dart';
 export 'src/widgets/spell_check.dart';
 export 'src/widgets/status_transitions.dart';
+export 'src/widgets/suspendable.dart';
 export 'src/widgets/table.dart';
 export 'src/widgets/tap_region.dart';
 export 'src/widgets/text.dart';
