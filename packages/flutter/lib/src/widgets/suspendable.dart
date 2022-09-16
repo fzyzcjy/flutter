@@ -1,7 +1,8 @@
-// ignore_for_file: public_member_api_docs
+// ignore_for_file: public_member_api_docs, always_specify_types, flutter_style_todos
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 
 class SuspendableCoordinator {
   SuspendableCoordinator._();
@@ -10,7 +11,11 @@ class SuspendableCoordinator {
 
   int pseudoRemainTime = 0;
 
-  bool hasPseudoRemainTimeAndDecr() => (pseudoRemainTime--) > 0;
+  bool hasPseudoRemainTimeAndDecr() {
+    debugPrint('SuspendableCoordinator hasPseudoRemainTimeAndDecr '
+        '(before)pseudoRemainTime=$pseudoRemainTime');
+    return (pseudoRemainTime--) > 0;
+  }
 }
 
 class Suspendable extends SingleChildRenderObjectWidget {
@@ -44,11 +49,48 @@ class RenderSuspendable extends RenderProxyBox {
   String? debugName;
 
   bool suspending = false;
+  Size? prevSize;
 
   @override
   void layout(Constraints constraints, {bool parentUsesSize = false}) {
     _log('layout');
     super.layout(constraints, parentUsesSize: parentUsesSize);
+  }
+
+  @override
+  void performLayout() {
+    final hasPseudoRemainTime =
+        SuspendableCoordinator.instance.hasPseudoRemainTimeAndDecr();
+    _log('performLayout hasPseudoRemainTime=$hasPseudoRemainTime '
+        '(old)suspending=$suspending (old)prevSize=$prevSize');
+
+    if (hasPseudoRemainTime) {
+      child!.layout(constraints, parentUsesSize: true);
+      size = child!.size;
+
+      prevSize = size;
+      suspending = false;
+    } else {
+      size = prevSize ?? Size.zero;
+
+      suspending = true;
+
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        _log('performLayout.PostFrameCallback markNeedsLayout');
+        markNeedsLayout();
+      });
+    }
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    _log('paint suspending=$suspending');
+
+    if (suspending) {
+      // TODO: paint using `toImageSync`, instead of painting nothing
+    } else {
+      context.paintChild(child!, offset);
+    }
   }
 
   void _log(String message) => debugPrint('[$debugName] $message');

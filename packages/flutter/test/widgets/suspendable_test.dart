@@ -41,7 +41,7 @@ void main() {
       ),
     ));
 
-    for (var i = 0; i < 5; ++i) {
+    for (int i = 0; i < 5; ++i) {
       SuspendableCoordinator.instance.pseudoRemainTime = 10;
       await tester.pump();
     }
