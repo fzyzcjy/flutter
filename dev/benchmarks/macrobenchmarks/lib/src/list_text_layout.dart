@@ -50,16 +50,30 @@ class ColumnOfTextState extends State<ColumnOfText> with SingleTickerProviderSta
         child: !_showText
             ? Container()
             : Column(
-                children: List<Widget>.generate(9, (int index) {
-                  return ListTile(
-                    leading: CircleAvatar(
-                      child: Text('G$index'),
+                children: List<Widget>.generate(30, (int index) {
+                  // hack: use [LayoutBuilder] to put all build time into layout
+                  // time, since we are prototyping "slow layout" problem
+                  return LayoutBuilder(
+                    builder: (_, __) => SizedBox(
+                      height: 24,
+                      child: ListTile(
+                        dense: true,
+                        visualDensity: VisualDensity.compact,
+                        leading: SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircleAvatar(
+                            child: Text('G$index'),
+                          ),
+                        ),
+                        title: Text(
+                          'Foo contact from $index-th local contact' * 5,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 5),
+                        ),
+                        subtitle: Text('+91 88888 8800$index'),
+                      ),
                     ),
-                    title: Text(
-                      'Foo contact from $index-th local contact',
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text('+91 88888 8800$index'),
                   );
                 }),
               ),
