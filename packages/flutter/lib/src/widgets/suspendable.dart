@@ -28,7 +28,7 @@ class SuspendableTimeSourceReal implements SuspendableTimeSource {
 
   // initial hacky impl: a bit less than 16.67 ms,
   // such that other tasks can have a bit of time
-  static const kTimeLimit = Duration(milliseconds: 14);
+  static const kTimeLimit = Duration(milliseconds: 12);
 
   late DateTime _lastStartFrameTime;
 
