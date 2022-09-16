@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('simple', (WidgetTester tester) async {
+    debugPrintBeginFrameBanner = debugPrintEndFrameBanner = true;
+
     SuspendableCoordinator.instance.pseudoRemainTime = 10;
 
     await tester.pumpWidget(const ColumnOfText());
@@ -11,6 +14,8 @@ void main() {
       SuspendableCoordinator.instance.pseudoRemainTime = 10;
       await tester.pump();
     }
+
+    debugPrintBeginFrameBanner = debugPrintEndFrameBanner = false;
   });
 }
 
