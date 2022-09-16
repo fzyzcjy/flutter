@@ -7,7 +7,10 @@ void main() {
     debugPrintBeginFrameBanner = debugPrintEndFrameBanner = true;
 
     SuspendableCoordinator.instance.pseudoRemainTime = 4;
-    await tester.pumpWidget(const ColumnOfText());
+    await tester.pumpWidget(const MaterialApp(home: ColumnOfText()));
+
+    SuspendableCoordinator.instance.pseudoRemainTime = 4;
+    await tester.pump(const Duration(milliseconds: 310));
 
     for (int i = 0; i < 5; ++i) {
       SuspendableCoordinator.instance.pseudoRemainTime = 4;
@@ -26,7 +29,8 @@ class ColumnOfText extends StatefulWidget {
   State<ColumnOfText> createState() => ColumnOfTextState();
 }
 
-class ColumnOfTextState extends State<ColumnOfText> with SingleTickerProviderStateMixin {
+class ColumnOfTextState extends State<ColumnOfText>
+    with SingleTickerProviderStateMixin {
   bool _showText = false;
   late AnimationController _controller;
 
@@ -65,36 +69,37 @@ class ColumnOfTextState extends State<ColumnOfText> with SingleTickerProviderSta
         child: !_showText
             ? Container()
             : Column(
-          children: List<Widget>.generate(10, (int index) {
-            // NOTE ADD Suspendable
-            return Suspendable(
-              // hack: use [LayoutBuilder] to put all build time into layout
-              // time, since we are prototyping "slow layout" problem
-              child: LayoutBuilder(
-                builder: (_, __) => SizedBox(
-                  height: 24,
-                  child: ListTile(
-                    dense: true,
-                    visualDensity: VisualDensity.compact,
-                    leading: SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircleAvatar(
-                        child: Text('G$index'),
+                children: List<Widget>.generate(10, (int index) {
+                  // NOTE ADD Suspendable
+                  return Suspendable(
+                    debugName: 'Item-$index',
+                    // hack: use [LayoutBuilder] to put all build time into layout
+                    // time, since we are prototyping "slow layout" problem
+                    child: LayoutBuilder(
+                      builder: (_, __) => SizedBox(
+                        height: 24,
+                        child: ListTile(
+                          dense: true,
+                          visualDensity: VisualDensity.compact,
+                          leading: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircleAvatar(
+                              child: Text('G$index'),
+                            ),
+                          ),
+                          title: Text(
+                            'Foo contact from $index-th local contact' * 5,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 5),
+                          ),
+                          subtitle: Text('+91 88888 8800$index'),
+                        ),
                       ),
                     ),
-                    title: Text(
-                      'Foo contact from $index-th local contact' * 5,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 5),
-                    ),
-                    subtitle: Text('+91 88888 8800$index'),
-                  ),
-                ),
+                  );
+                }),
               ),
-            );
-          }),
-        ),
       ),
     );
   }
