@@ -1,21 +1,55 @@
-// ignore_for_file: public_member_api_docs, always_specify_types, flutter_style_todos
+// ignore_for_file: public_member_api_docs, always_specify_types, flutter_style_todos, depend_on_referenced_packages
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+
+abstract class SuspendableTimeSource {
+  bool hasRemainTime();
+}
+
+class SuspendableTimeSourcePseudo implements SuspendableTimeSource {
+  int pseudoRemainTime = 0;
+
+  @override
+  bool hasRemainTime() {
+    debugPrint('SuspendableTimeSourceDebug hasRemainTimeAndDecr '
+        '(before)pseudoRemainTime=$pseudoRemainTime');
+    return (pseudoRemainTime--) > 0;
+  }
+}
+
+class SuspendableTimeSourceReal implements SuspendableTimeSource {
+  SuspendableTimeSourceReal() {
+    // initial hacky impl: this will schedule a new frame...
+    SchedulerBinding.instance.scheduleFrameCallback(_handleFrameCallback);
+  }
+
+  // initial hacky impl: a bit less than 16.67 ms,
+  // such that other tasks can have a bit of time
+  static const kTimeLimit = Duration(milliseconds: 14);
+
+  late DateTime _lastStartFrameTime;
+
+  void _handleFrameCallback(Duration _) {
+    _lastStartFrameTime = clock.now();
+    // debugPrint(
+    //     'SuspendableTimeSourceReal _handleFrameCallback set lastStartFrameTime=$_lastStartFrameTime');
+    SchedulerBinding.instance.scheduleFrameCallback(_handleFrameCallback);
+  }
+
+  @override
+  bool hasRemainTime() =>
+      clock.now().difference(_lastStartFrameTime) < kTimeLimit;
+}
 
 class SuspendableCoordinator {
   SuspendableCoordinator._();
 
   static final SuspendableCoordinator instance = SuspendableCoordinator._();
 
-  int pseudoRemainTime = 0;
-
-  bool hasPseudoRemainTimeAndDecr() {
-    debugPrint('SuspendableCoordinator hasPseudoRemainTimeAndDecr '
-        '(before)pseudoRemainTime=$pseudoRemainTime');
-    return (pseudoRemainTime--) > 0;
-  }
+  late SuspendableTimeSource timeSource;
 }
 
 class Suspendable extends SingleChildRenderObjectWidget {
@@ -60,12 +94,13 @@ class RenderSuspendable extends RenderProxyBox {
 
   @override
   void performLayout() {
-    final hasPseudoRemainTime =
-        SuspendableCoordinator.instance.hasPseudoRemainTimeAndDecr();
-    _log('performLayout START hasPseudoRemainTime=$hasPseudoRemainTime '
+    final hasRemainTime =
+        SuspendableCoordinator.instance.timeSource.hasRemainTime();
+    _log('performLayout START hasRemainTime=$hasRemainTime '
+        'now=${clock.now()} '
         '(old)suspending=$suspending (old)prevSize=$prevSize');
 
-    if (hasPseudoRemainTime) {
+    if (hasRemainTime) {
       child!.layout(constraints, parentUsesSize: true);
       size = child!.size;
 
@@ -104,5 +139,6 @@ class RenderSuspendable extends RenderProxyBox {
     }
   }
 
-  void _log(String message) => debugPrint('[$debugName, this=$this, child=$child] $message');
+  void _log(String message) =>
+      debugPrint('[$debugName, this=$this, child=$child] $message');
 }

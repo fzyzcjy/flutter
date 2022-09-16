@@ -6,7 +6,10 @@ void main() {
   testWidgets('simple', (WidgetTester tester) async {
     debugPrintBeginFrameBanner = debugPrintEndFrameBanner = true;
 
-    SuspendableCoordinator.instance.pseudoRemainTime = 4;
+    final timeSource = SuspendableTimeSourcePseudo();
+    SuspendableCoordinator.instance.timeSource = timeSource;
+
+    timeSource.pseudoRemainTime = 4;
     await tester.pumpWidget(
       const MaterialApp(
         // hack
@@ -16,11 +19,11 @@ void main() {
       ),
     );
 
-    SuspendableCoordinator.instance.pseudoRemainTime = 4;
+    timeSource.pseudoRemainTime = 4;
     await tester.pump(const Duration(milliseconds: 310));
 
     for (int i = 0; i < 5; ++i) {
-      SuspendableCoordinator.instance.pseudoRemainTime = 4;
+      timeSource.pseudoRemainTime = 4;
       await tester.pump();
     }
 
