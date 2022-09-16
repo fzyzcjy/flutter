@@ -6,12 +6,11 @@ void main() {
   testWidgets('simple', (WidgetTester tester) async {
     debugPrintBeginFrameBanner = debugPrintEndFrameBanner = true;
 
-    SuspendableCoordinator.instance.pseudoRemainTime = 10;
-
+    SuspendableCoordinator.instance.pseudoRemainTime = 4;
     await tester.pumpWidget(const ColumnOfText());
 
     for (int i = 0; i < 5; ++i) {
-      SuspendableCoordinator.instance.pseudoRemainTime = 10;
+      SuspendableCoordinator.instance.pseudoRemainTime = 4;
       await tester.pump();
     }
 
@@ -66,7 +65,7 @@ class ColumnOfTextState extends State<ColumnOfText> with SingleTickerProviderSta
         child: !_showText
             ? Container()
             : Column(
-          children: List<Widget>.generate(30, (int index) {
+          children: List<Widget>.generate(10, (int index) {
             // NOTE ADD Suspendable
             return Suspendable(
               // hack: use [LayoutBuilder] to put all build time into layout
