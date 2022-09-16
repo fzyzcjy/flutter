@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('simple', (WidgetTester tester) async {
+    SuspendableCoordinator.instance.pseudoRemainTime = 10;
+
     await tester.pumpWidget(MaterialApp(
       home: OverflowBox(
         alignment: Alignment.topCenter,
@@ -39,8 +41,9 @@ void main() {
       ),
     ));
 
-    await tester.pump();
-    await tester.pump();
-    await tester.pump();
+    for (var i = 0; i < 5; ++i) {
+      SuspendableCoordinator.instance.pseudoRemainTime = 10;
+      await tester.pump();
+    }
   });
 }

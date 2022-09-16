@@ -1,29 +1,25 @@
+// ignore_for_file: public_member_api_docs
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-///
 class SuspendableCoordinator {
   SuspendableCoordinator._();
 
-  ///
   static final SuspendableCoordinator instance = SuspendableCoordinator._();
 
-  ///
-  bool nearTimeout = false;
+  int pseudoRemainTime = 0;
 
-// TODO
+  bool hasPseudoRemainTimeAndDecr() => (pseudoRemainTime--) > 0;
 }
 
-///
 class Suspendable extends SingleChildRenderObjectWidget {
-  ///
   const Suspendable({
     super.key,
     this.debugName,
     super.child,
   });
 
-  ///
   final String? debugName;
 
   @override
@@ -39,15 +35,12 @@ class Suspendable extends SingleChildRenderObjectWidget {
   }
 }
 
-///
 class RenderSuspendable extends RenderProxyBox {
-  ///
   RenderSuspendable({
     RenderBox? child,
     this.debugName,
   }) : super(child);
 
-  ///
   String? debugName;
 
   bool suspending = false;
