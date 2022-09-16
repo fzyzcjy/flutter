@@ -53,15 +53,16 @@ class RenderSuspendable extends RenderProxyBox {
 
   @override
   void layout(Constraints constraints, {bool parentUsesSize = false}) {
-    _log('layout');
+    _log('layout START');
     super.layout(constraints, parentUsesSize: parentUsesSize);
+    _log('layout END');
   }
 
   @override
   void performLayout() {
     final hasPseudoRemainTime =
         SuspendableCoordinator.instance.hasPseudoRemainTimeAndDecr();
-    _log('performLayout hasPseudoRemainTime=$hasPseudoRemainTime '
+    _log('performLayout START hasPseudoRemainTime=$hasPseudoRemainTime '
         '(old)suspending=$suspending (old)prevSize=$prevSize');
 
     if (hasPseudoRemainTime) {
@@ -80,6 +81,8 @@ class RenderSuspendable extends RenderProxyBox {
         markNeedsLayout();
       });
     }
+
+    _log('performLayout END');
   }
 
   // ref: [RenderOpacity], it can choose not to paint child at all
@@ -101,5 +104,5 @@ class RenderSuspendable extends RenderProxyBox {
     }
   }
 
-  void _log(String message) => debugPrint('[$debugName] $message');
+  void _log(String message) => debugPrint('[$debugName, this=$this, child=$child] $message');
 }

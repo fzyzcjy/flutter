@@ -78,26 +78,7 @@ class ColumnOfTextState extends State<ColumnOfText>
                     // hack: use [LayoutBuilder] to put all build time into layout
                     // time, since we are prototyping "slow layout" problem
                     child: LayoutBuilder(
-                      builder: (_, __) => SizedBox(
-                        height: 24,
-                        child: ListTile(
-                          dense: true,
-                          visualDensity: VisualDensity.compact,
-                          leading: SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircleAvatar(
-                              child: Text('G$index'),
-                            ),
-                          ),
-                          title: Text(
-                            'Foo contact from $index-th local contact' * 5,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 5),
-                          ),
-                          subtitle: Text('+91 88888 8800$index'),
-                        ),
-                      ),
+                      builder: (_, __) => Text('text index=$index'),
                     ),
                   );
                 }),
