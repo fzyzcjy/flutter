@@ -10,6 +10,7 @@ void main() {
         child: Column(
           children: List<Widget>.generate(30, (int index) {
             return Suspendable(
+              debugName: 'item-$index',
               child: LayoutBuilder(
                 builder: (_, __) => SizedBox(
                   height: 24,

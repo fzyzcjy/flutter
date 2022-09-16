@@ -19,16 +19,24 @@ class Suspendable extends SingleChildRenderObjectWidget {
   ///
   const Suspendable({
     super.key,
+    this.debugName,
     super.child,
   });
 
+  ///
+  final String? debugName;
+
   @override
   RenderSuspendable createRenderObject(BuildContext context) =>
-      RenderSuspendable();
+      RenderSuspendable(
+        debugName: debugName,
+      );
 
   @override
   void updateRenderObject(
-      BuildContext context, RenderSuspendable renderObject) {}
+      BuildContext context, RenderSuspendable renderObject) {
+    renderObject.debugName = debugName;
+  }
 }
 
 ///
@@ -36,11 +44,19 @@ class RenderSuspendable extends RenderProxyBox {
   ///
   RenderSuspendable({
     RenderBox? child,
+    this.debugName,
   }) : super(child);
+
+  ///
+  String? debugName;
+
+  bool suspending = false;
 
   @override
   void layout(Constraints constraints, {bool parentUsesSize = false}) {
-    // TODO
+    _log('layout');
     super.layout(constraints, parentUsesSize: parentUsesSize);
   }
+
+  void _log(String message) => debugPrint('[$debugName] $message');
 }
