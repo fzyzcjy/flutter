@@ -7,7 +7,14 @@ void main() {
     debugPrintBeginFrameBanner = debugPrintEndFrameBanner = true;
 
     SuspendableCoordinator.instance.pseudoRemainTime = 4;
-    await tester.pumpWidget(const MaterialApp(home: ColumnOfText()));
+    await tester.pumpWidget(
+      const MaterialApp(
+        // hack
+        home: ExcludeSemantics(
+          child: ColumnOfText(),
+        ),
+      ),
+    );
 
     SuspendableCoordinator.instance.pseudoRemainTime = 4;
     await tester.pump(const Duration(milliseconds: 310));
