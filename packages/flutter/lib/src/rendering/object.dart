@@ -1582,6 +1582,8 @@ abstract class RenderObject extends AbstractNode with DiagnosticableTreeMixin im
   static RenderObject? get debugActiveLayout => _debugActiveLayout;
   static RenderObject? _debugActiveLayout;
 
+  static set debugActiveLayout(RenderObject? val) => _debugActiveLayout = val;
+
   /// Whether the parent render object is permitted to use this render object's
   /// size.
   ///
