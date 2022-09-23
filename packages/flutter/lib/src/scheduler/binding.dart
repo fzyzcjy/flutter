@@ -995,6 +995,8 @@ mixin SchedulerBinding on BindingBase {
   }
   Duration? _currentFrameTimeStamp;
 
+  DateTime? currentFrameStartTime;
+
   /// The raw time stamp as provided by the engine to
   /// [dart:ui.PlatformDispatcher.onBeginFrame] for the frame currently being
   /// processed.
@@ -1090,6 +1092,9 @@ mixin SchedulerBinding on BindingBase {
     if (rawTimeStamp != null) {
       _lastRawTimeStamp = rawTimeStamp;
     }
+
+    // NOTE add
+    currentFrameStartTime = DateTime.now();
 
     assert(() {
       _debugFrameNumber += 1;
