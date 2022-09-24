@@ -227,10 +227,10 @@ class RenderView extends RenderObject with RenderObjectWithChildMixin<RenderBox>
       Timeline.startSync('COMPOSITING');
     }
     try {
-      print('$runtimeType.compositeFrame begin print ===');
-      void printWrapped(String text) => RegExp('.{1,800}').allMatches(text).map((m) => m.group(0)).forEach(print);
-      printWrapped('this.layer=${layer!.toStringDeep()}');
-      print('$runtimeType.compositeFrame after print ===');
+      // print('$runtimeType.compositeFrame begin print ===');
+      // void printWrapped(String text) => RegExp('.{1,800}').allMatches(text).map((m) => m.group(0)).forEach(print);
+      // printWrapped('this.layer=${layer!.toStringDeep()}');
+      // print('$runtimeType.compositeFrame after print ===');
 
       final ui.SceneBuilder builder = ui.SceneBuilder();
       final ui.Scene scene = layer!.buildScene(builder);
