@@ -243,7 +243,7 @@ class Ticker {
   bool get shouldScheduleTick => !muted && isActive && !scheduled;
 
   void _tick(Duration timeStamp) {
-    debugPrint('${describeIdentity(this)} _tick timeStamp=$timeStamp');
+    // debugPrint('${describeIdentity(this)} _tick timeStamp=$timeStamp');
     assert(isTicking);
     assert(scheduled);
     _animationId = null;
@@ -260,8 +260,8 @@ class Ticker {
 
   // ignore: public_member_api_docs
   void maybeExtraTick(Duration timeStamp) {
-    debugPrint(
-        '${describeIdentity(this)} extraTick timeStamp=$timeStamp isActive=$isActive');
+    // debugPrint(
+    //     '${describeIdentity(this)} extraTick timeStamp=$timeStamp isActive=$isActive');
     if (isActive) {
       _startTime ??= timeStamp;
       _onTick(timeStamp - _startTime!);
