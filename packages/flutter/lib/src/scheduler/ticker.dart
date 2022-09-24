@@ -241,6 +241,7 @@ class Ticker {
   bool get shouldScheduleTick => !muted && isActive && !scheduled;
 
   void _tick(Duration timeStamp) {
+    debugPrint('${describeIdentity(this)} _tick timeStamp=$timeStamp');
     assert(isTicking);
     assert(scheduled);
     _animationId = null;
@@ -256,12 +257,10 @@ class Ticker {
   }
 
   // ignore: public_member_api_docs
-  void extraTick(DateTime now) {
-    final Duration elapsed = SchedulerBinding.instance.currentFrameTimeStamp +
-        Duration(
-            microseconds: now.microsecondsSinceEpoch -
-                SchedulerBinding.instance.currentFrameStartTimeUs!);
-    _onTick(elapsed);
+  void extraTick(Duration timeStamp) {
+    debugPrint('${describeIdentity(this)} extraTick timeStamp=$timeStamp');
+    _startTime ??= timeStamp;
+    _onTick(timeStamp - _startTime!);
   }
 
   /// Schedules a tick for the next frame.
