@@ -227,6 +227,9 @@ class RenderView extends RenderObject with RenderObjectWithChildMixin<RenderBox>
       Timeline.startSync('COMPOSITING');
     }
     try {
+      // debugPrint('$runtimeType.compositeFrame');
+      // debugPrint('this.layer=${layer!.toStringDeep()}');
+
       final ui.SceneBuilder builder = ui.SceneBuilder();
       final ui.Scene scene = layer!.buildScene(builder);
       if (automaticSystemUiAdjustment) {
