@@ -155,6 +155,7 @@ class Ticker {
   /// By convention, this method is used by the object that receives the ticks
   /// (as opposed to the [TickerProvider] which created the ticker).
   TickerFuture start() {
+    // debugPrint('${describeIdentity(this)} start');
     assert(() {
       if (isActive) {
         throw FlutterError.fromParts(<DiagnosticsNode>[
@@ -199,6 +200,7 @@ class Ticker {
   /// By convention, this method is used by the object that receives the ticks
   /// (as opposed to the [TickerProvider] which created the ticker).
   void stop({ bool canceled = false }) {
+    // debugPrint('${describeIdentity(this)} stop');
     if (!isActive) {
       return;
     }
@@ -257,10 +259,13 @@ class Ticker {
   }
 
   // ignore: public_member_api_docs
-  void extraTick(Duration timeStamp) {
-    debugPrint('${describeIdentity(this)} extraTick timeStamp=$timeStamp');
-    _startTime ??= timeStamp;
-    _onTick(timeStamp - _startTime!);
+  void maybeExtraTick(Duration timeStamp) {
+    debugPrint(
+        '${describeIdentity(this)} extraTick timeStamp=$timeStamp isActive=$isActive');
+    if (isActive) {
+      _startTime ??= timeStamp;
+      _onTick(timeStamp - _startTime!);
+    }
   }
 
   /// Schedules a tick for the next frame.
