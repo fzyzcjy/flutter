@@ -220,6 +220,8 @@ class Ticker {
   }
 
 
+  // ignore: public_member_api_docs
+  TickerCallback get onTick => _onTick; // make it visible, for prototype
   final TickerCallback _onTick;
 
   int? _animationId;

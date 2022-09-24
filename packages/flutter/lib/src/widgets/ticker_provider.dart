@@ -12,6 +12,35 @@ export 'package:flutter/scheduler.dart' show TickerProvider;
 // Examples can assume:
 // late BuildContext context;
 
+// ignore: public_member_api_docs
+class TickerRegistry {
+  // ignore: public_member_api_docs
+  final Set<Ticker> tickers = <Ticker>{};
+}
+
+// ignore: public_member_api_docs
+class TickerRegistryInheritedWidget extends InheritedWidget {
+  // ignore: public_member_api_docs
+  const TickerRegistryInheritedWidget({
+    super.key,
+    required this.registry,
+    required super.child,
+  });
+
+  // ignore: public_member_api_docs
+  final TickerRegistry registry;
+
+  static TickerRegistry? of(BuildContext context) => (context
+          .getElementForInheritedWidgetOfExactType<
+              TickerRegistryInheritedWidget>()
+          ?.widget as TickerRegistryInheritedWidget?)
+      ?.registry;
+
+  @override
+  bool updateShouldNotify(TickerRegistryInheritedWidget oldWidget) =>
+      oldWidget.registry != registry;
+}
+
 /// Enables or disables tickers (and thus animation controllers) in the widget
 /// subtree.
 ///
@@ -197,6 +226,7 @@ mixin SingleTickerProviderStateMixin<T extends StatefulWidget> on State<T> imple
       ]);
     }());
     _ticker = Ticker(onTick, debugLabel: kDebugMode ? 'created by ${describeIdentity(this)}' : null);
+    TickerRegistryInheritedWidget.of(context)?.tickers.add(_ticker!); // NOTE ADD
     _updateTickerModeNotifier();
     _updateTicker(); // Sets _ticker.mute correctly.
     return _ticker!;
@@ -298,6 +328,7 @@ mixin TickerProviderStateMixin<T extends StatefulWidget> on State<T> implements 
     final _WidgetTicker result = _WidgetTicker(onTick, this, debugLabel: kDebugMode ? 'created by ${describeIdentity(this)}' : null)
       ..muted = !_tickerModeNotifier!.value;
     _tickers!.add(result);
+    TickerRegistryInheritedWidget.of(context)?.tickers.add(result); // NOTE ADD
     return result;
   }
 
