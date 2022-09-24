@@ -220,8 +220,6 @@ class Ticker {
   }
 
 
-  // ignore: public_member_api_docs
-  TickerCallback get onTick => _onTick; // make it visible, for prototype
   final TickerCallback _onTick;
 
   int? _animationId;
@@ -255,6 +253,15 @@ class Ticker {
     if (shouldScheduleTick) {
       scheduleTick(rescheduling: true);
     }
+  }
+
+  // ignore: public_member_api_docs
+  void extraTick(DateTime now) {
+    final Duration elapsed = SchedulerBinding.instance.currentFrameTimeStamp +
+        Duration(
+            microseconds: now.microsecondsSinceEpoch -
+                SchedulerBinding.instance.currentFrameStartTimeUs!);
+    _onTick(elapsed);
   }
 
   /// Schedules a tick for the next frame.
