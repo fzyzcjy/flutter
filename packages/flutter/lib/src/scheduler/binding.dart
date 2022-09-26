@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:developer' show Flow, Timeline, TimelineTask;
 import 'dart:ui' show AppLifecycleState, DartPerformanceMode, FramePhase, FrameTiming, PlatformDispatcher, TimingsCallback;
+import 'dart:ui';
 
 import 'package:collection/collection.dart' show HeapPriorityQueue, PriorityQueue;
 import 'package:flutter/foundation.dart';
@@ -984,6 +985,15 @@ mixin SchedulerBinding on BindingBase {
     return Duration(microseconds: (rawDurationSinceEpoch.inMicroseconds / timeDilation).round() + _epochStart.inMicroseconds);
   }
 
+  // ignore: public_member_api_docs
+  AdjustedLastVsyncInfo lastVsyncInfo() {
+    final LastVsyncInfo raw = platformDispatcher.lastVsyncInfo();
+    return AdjustedLastVsyncInfo(
+      vsyncTargetTimeRaw: raw.vsyncTargetTime,
+      vsyncTargetTimeAdjusted: _adjustForEpoch(raw.vsyncTargetTime),
+    );
+  }
+
   /// The time stamp for the frame currently being processed.
   ///
   /// This is only valid while between the start of [handleBeginFrame] and the
@@ -1309,4 +1319,19 @@ bool defaultSchedulingStrategy({ required int priority, required SchedulerBindin
     return priority >= Priority.animation.value;
   }
   return true;
+}
+
+// ignore: public_member_api_docs
+class AdjustedLastVsyncInfo {
+  // ignore: public_member_api_docs
+  const AdjustedLastVsyncInfo({
+    required this.vsyncTargetTimeRaw,
+    required this.vsyncTargetTimeAdjusted,
+  });
+
+  final Duration vsyncTargetTimeRaw;
+  final Duration vsyncTargetTimeAdjusted;
+
+  @override
+  String toString() => 'AdjustedLastVsyncInfo{vsyncTargetTimeRaw: $vsyncTargetTimeRaw, vsyncTargetTimeAdjusted: vsyncTargetTimeAdjusted}';
 }
