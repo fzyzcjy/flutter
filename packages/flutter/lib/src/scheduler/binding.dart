@@ -990,7 +990,7 @@ mixin SchedulerBinding on BindingBase {
     final LastVsyncInfo raw = platformDispatcher.lastVsyncInfo();
     return AdjustedLastVsyncInfo(
       vsyncTargetTimeRaw: raw.vsyncTargetTime,
-      vsyncTargetDateTime: raw.vsyncTargetDateTime,
+      diffDateTimeTimePoint: raw.diffDateTimeTimePoint,
       vsyncTargetTimeAdjusted: _adjustForEpoch(raw.vsyncTargetTime),
     );
   }
@@ -1327,18 +1327,22 @@ class AdjustedLastVsyncInfo {
   // ignore: public_member_api_docs
   const AdjustedLastVsyncInfo({
     required this.vsyncTargetTimeRaw,
-    required this.vsyncTargetDateTime,
+    required this.diffDateTimeTimePoint,
     required this.vsyncTargetTimeAdjusted,
   });
 
   final Duration vsyncTargetTimeRaw;
-  final DateTime vsyncTargetDateTime;
+  final int diffDateTimeTimePoint;
   final Duration vsyncTargetTimeAdjusted;
+
+  DateTime get vsyncTargetDateTime => DateTime.fromMicrosecondsSinceEpoch(
+      vsyncTargetTimeRaw.inMicroseconds + diffDateTimeTimePoint);
 
   @override
   String toString() => 'AdjustedLastVsyncInfo{'
       'vsyncTargetTimeRaw: $vsyncTargetTimeRaw, '
       'vsyncTargetDateTime: $vsyncTargetDateTime, '
+      'diffDateTimeTimePoint: $diffDateTimeTimePoint, '
       'vsyncTargetTimeAdjusted: $vsyncTargetTimeAdjusted,'
       '}';
 }
