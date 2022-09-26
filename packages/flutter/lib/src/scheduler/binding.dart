@@ -1333,5 +1333,5 @@ class AdjustedLastVsyncInfo {
   final Duration vsyncTargetTimeAdjusted;
 
   @override
-  String toString() => 'AdjustedLastVsyncInfo{vsyncTargetTimeRaw: $vsyncTargetTimeRaw, vsyncTargetTimeAdjusted: vsyncTargetTimeAdjusted}';
+  String toString() => 'AdjustedLastVsyncInfo{vsyncTargetTimeRaw: $vsyncTargetTimeRaw, vsyncTargetTimeAdjusted: $vsyncTargetTimeAdjusted}';
 }
