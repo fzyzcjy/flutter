@@ -1335,9 +1335,6 @@ class AdjustedLastVsyncInfo {
   final int diffDateTimeTimePoint;
   final Duration vsyncTargetTimeAdjusted;
 
-  DateTime get vsyncTargetDateTime => DateTime.fromMicrosecondsSinceEpoch(
-      vsyncTargetTimeRaw.inMicroseconds + diffDateTimeTimePoint);
-
   @override
   String toString() => 'AdjustedLastVsyncInfo{'
       'vsyncTargetTimeRaw: $vsyncTargetTimeRaw, '
@@ -1345,4 +1342,9 @@ class AdjustedLastVsyncInfo {
       'diffDateTimeTimePoint: $diffDateTimeTimePoint, '
       'vsyncTargetTimeAdjusted: $vsyncTargetTimeAdjusted,'
       '}';
+}
+
+extension ExtAdjustedLastVsyncInfo on AdjustedLastVsyncInfo {
+  DateTime get vsyncTargetDateTime => DateTime.fromMicrosecondsSinceEpoch(
+      vsyncTargetTimeRaw.inMicroseconds + diffDateTimeTimePoint);
 }

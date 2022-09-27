@@ -344,6 +344,10 @@ class FakeTicker implements Ticker {
   DiagnosticsNode describeForError(String name) {
     return DiagnosticsProperty<Ticker>(name, this, style: DiagnosticsTreeStyle.errorProperty);
   }
+
+  @override
+  void maybeExtraTick(Duration timeStamp) {
+  }
 }
 
 class TestClipPaintingContext extends PaintingContext {
