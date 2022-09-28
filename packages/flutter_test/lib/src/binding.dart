@@ -1277,6 +1277,11 @@ class AutomatedTestWidgetsFlutterBinding extends TestWidgetsFlutterBinding {
     return Future<void>.value();
   }
 
+  // NOTE add
+  void elapseBlocking(Duration duration) {
+    _currentFakeAsync!.elapseBlocking(duration);
+  }
+
   @override
   Future<void> runTest(
     Future<void> Function() testBody,
