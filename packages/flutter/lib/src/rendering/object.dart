@@ -85,6 +85,7 @@ class PaintingContext extends ClipContext {
     : assert(_containerLayer != null),
       assert(estimatedBounds != null);
 
+  ContainerLayer get containerLayer => _containerLayer;
   final ContainerLayer _containerLayer;
 
   /// An estimate of the bounds within which the painting context's [canvas]
@@ -1076,6 +1077,7 @@ class PipelineOwner {
     }
   }
 
+  List<RenderObject> get nodesNeedingPaint => _nodesNeedingPaint;
   List<RenderObject> _nodesNeedingPaint = <RenderObject>[];
 
   /// Whether this pipeline is currently in the paint phase.
@@ -1122,6 +1124,9 @@ class PipelineOwner {
       // Sort the dirty nodes in reverse order (deepest first).
       for (final RenderObject node in dirtyNodes..sort((RenderObject a, RenderObject b) => b.depth - a.depth)) {
         assert(node._layerHandle.layer != null);
+        print('hi flushPaint ${describeIdentity(this)} node=$node '
+            '_needsPaint=${node._needsPaint} owner=${describeIdentity(node.owner)} '
+            'node._layerHandle.layer!.attached=${node._layerHandle.layer!.attached}');
         if ((node._needsPaint || node._needsCompositedLayerUpdate) && node.owner == this) {
           if (node._layerHandle.layer!.attached) {
             assert(node.isRepaintBoundary);
@@ -2569,6 +2574,7 @@ abstract class RenderObject extends AbstractNode with DiagnosticableTreeMixin im
   void markNeedsPaint() {
     assert(!_debugDisposed);
     assert(owner == null || !owner!.debugDoingPaint);
+    print('hi ${describeIdentity(this)}.markNeedsPaint start _needsPaint=$_needsPaint');
     if (_needsPaint) {
       return;
     }
@@ -2585,15 +2591,18 @@ abstract class RenderObject extends AbstractNode with DiagnosticableTreeMixin im
       // If we always have our own layer, then we can just repaint
       // ourselves without involving any other nodes.
       assert(_layerHandle.layer is OffsetLayer);
+      print('hi ${describeIdentity(this)}.markNeedsPaint case-repaintboundary owner=${describeIdentity(owner)}');
       if (owner != null) {
         owner!._nodesNeedingPaint.add(this);
         owner!.requestVisualUpdate();
       }
     } else if (parent is RenderObject) {
+      print('hi ${describeIdentity(this)}.markNeedsPaint case-parent parent=${describeIdentity(this.parent)}');
       final RenderObject parent = this.parent! as RenderObject;
       parent.markNeedsPaint();
       assert(parent == this.parent);
     } else {
+      print('hi ${describeIdentity(this)}.markNeedsPaint case-else owner=${describeIdentity(owner)}');
       assert(() {
         if (debugPrintMarkNeedsPaintStacks) {
           debugPrintStack(label: 'markNeedsPaint() called for $this (root of render tree)');
