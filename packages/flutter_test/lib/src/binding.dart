@@ -539,7 +539,7 @@ abstract class TestWidgetsFlutterBinding extends BindingBase
     PointerEvent event, {
     TestBindingEventSource source = TestBindingEventSource.device,
   }) {
-    withPointerEventSource(source, () => handlePointerEvent(event));
+    withPointerEventSource(source, () => handlePointerEvent(event, filter: null));
   }
 
   /// Sets [pointerEventSource] to `source`, runs `task`, then resets `source`
@@ -1675,7 +1675,7 @@ class LiveTestWidgetsFlutterBinding extends TestWidgetsFlutterBinding {
   /// the event, after being transformed to the local coordinate system, is
   /// forwarded to [deviceEventDispatcher].
   @override
-  void handlePointerEvent(PointerEvent event) {
+  void handlePointerEvent(PointerEvent event, {HitTestEntryFilter? filter}) {
     switch (pointerEventSource) {
       case TestBindingEventSource.test:
         final _LiveTestPointerRecord? record = _liveTestRenderView._pointers[event.pointer];
@@ -1692,11 +1692,11 @@ class LiveTestWidgetsFlutterBinding extends TestWidgetsFlutterBinding {
           );
           _handleViewNeedsPaint();
         }
-        super.handlePointerEvent(event);
+        super.handlePointerEvent(event, filter: filter);
         break;
       case TestBindingEventSource.device:
         if (shouldPropagateDevicePointerEvents) {
-          super.handlePointerEvent(event);
+          super.handlePointerEvent(event, filter: filter);
           break;
         }
         if (deviceEventDispatcher != null) {
@@ -1705,7 +1705,7 @@ class LiveTestWidgetsFlutterBinding extends TestWidgetsFlutterBinding {
           // coordinate space used by the testing widgets.
           final PointerEvent localEvent = event.copyWith(position: globalToLocal(event.position));
           withPointerEventSource(TestBindingEventSource.device,
-            () => super.handlePointerEvent(localEvent)
+            () => super.handlePointerEvent(localEvent, filter: filter)
           );
         }
         break;
@@ -1713,20 +1713,20 @@ class LiveTestWidgetsFlutterBinding extends TestWidgetsFlutterBinding {
   }
 
   @override
-  void dispatchEvent(PointerEvent event, HitTestResult? hitTestResult) {
+  void dispatchEvent(PointerEvent event, HitTestResult? hitTestResult, {required HitTestEntryFilter? filter}) {
     switch (pointerEventSource) {
       case TestBindingEventSource.test:
-        super.dispatchEvent(event, hitTestResult);
+        super.dispatchEvent(event, hitTestResult, filter: filter);
         break;
       case TestBindingEventSource.device:
         assert(hitTestResult != null || event is PointerAddedEvent || event is PointerRemovedEvent);
         if (shouldPropagateDevicePointerEvents) {
-          super.dispatchEvent(event, hitTestResult);
+          super.dispatchEvent(event, hitTestResult, filter: filter);
           break;
         }
         assert(deviceEventDispatcher != null);
         if (hitTestResult != null) {
-          deviceEventDispatcher!.dispatchEvent(event, hitTestResult);
+          deviceEventDispatcher!.dispatchEvent(event, hitTestResult, filter: filter);
         }
         break;
     }

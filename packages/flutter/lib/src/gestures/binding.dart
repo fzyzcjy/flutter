@@ -311,7 +311,7 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
     assert(!locked);
 
     while (_pendingPointerEvents.isNotEmpty) {
-      handlePointerEvent(_pendingPointerEvents.removeFirst());
+      handlePointerEvent(_pendingPointerEvents.removeFirst(), filter: null);
     }
   }
 
@@ -413,7 +413,7 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
   /// [PointerRemovedEvent]s.
   @override // from HitTestDispatcher
   @pragma('vm:notify-debugger-on-exception')
-  void dispatchEvent(PointerEvent event, HitTestResult? hitTestResult, {HitTestEntryFilter? filter}) {
+  void dispatchEvent(PointerEvent event, HitTestResult? hitTestResult, {required HitTestEntryFilter? filter}) {
     assert(!locked);
     // No hit test information implies that this is a [PointerAddedEvent] or
     // [PointerRemovedEvent]. These events are specially routed here; other
@@ -569,5 +569,3 @@ class FlutterErrorDetailsForPointerEventDispatcher extends FlutterErrorDetails {
   /// the hitTestEntry object.
   final HitTestEntry? hitTestEntry;
 }
-
-typedef HitTestEntryFilter = bool Function(HitTestEntry);
