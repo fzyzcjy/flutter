@@ -657,7 +657,7 @@ abstract class Layer extends AbstractNode with DiagnosticableTreeMixin {
   void addToScene(ui.SceneBuilder builder);
 
   void _addToSceneWithRetainedRendering(ui.SceneBuilder builder) {
-    print('hi ${describeIdentity(this)}._addToSceneWithRetainedRendering _needsAddToScene=$_needsAddToScene');
+    // print('hi ${describeIdentity(this)}._addToSceneWithRetainedRendering _needsAddToScene=$_needsAddToScene');
     assert(!_debugMutationsLocked);
     // There can't be a loop by adding a retained layer subtree whose
     // _needsAddToScene is false.
@@ -1094,7 +1094,7 @@ class ContainerLayer extends Layer {
   // both to render the whole layer tree (e.g. a normal application frame) and
   // to render a subtree (e.g. `OffsetLayer.toImage`).
   ui.Scene buildScene(ui.SceneBuilder builder) {
-    print('hi ${describeIdentity(this)}.buildScene');
+    // print('hi ${describeIdentity(this)}.buildScene');
     updateSubtreeNeedsAddToScene();
     addToScene(builder);
     if (subtreeHasCompositionCallbacks) {
