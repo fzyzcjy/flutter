@@ -2592,19 +2592,7 @@ abstract class RenderObject extends AbstractNode with DiagnosticableTreeMixin im
       parent.markNeedsPaint();
       assert(parent == this.parent);
     } else {
-      assert(() {
-        if (debugPrintMarkNeedsPaintStacks) {
-          debugPrintStack(label: 'markNeedsPaint() called for $this (root of render tree)');
-        }
-        return true;
-      }());
-      // If we're the root of the render tree (probably a RenderView),
-      // then we have to paint ourselves, since nobody else can paint
-      // us. We don't add ourselves to _nodesNeedingPaint in this
-      // case, because the root is always told to paint regardless.
-      if (owner != null) {
-        owner!.requestVisualUpdate();
-      }
+      assert(false, 'Root of the render tree must be repaint boundary');
     }
   }
 
