@@ -531,6 +531,8 @@ class BallisticScrollActivity extends ScrollActivity {
     TickerProvider vsync,
     this.shouldIgnorePointer,
   ) {
+    print('hi ${describeIdentity(this)} constructor simulation=$simulation');
+    debugPrintStack();
     _controller = AnimationController.unbounded(
       debugLabel: kDebugMode ? objectRuntimeType(this, 'BallisticScrollActivity') : null,
       vsync: vsync,
@@ -553,6 +555,7 @@ class BallisticScrollActivity extends ScrollActivity {
   }
 
   void _tick() {
+    print('hi ${describeIdentity(this)} tick value=${_controller.value}');
     if (!applyMoveTo(_controller.value)) {
       delegate.goIdle();
     }
