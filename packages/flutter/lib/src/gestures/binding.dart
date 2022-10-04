@@ -285,6 +285,15 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
     _flushPointerEventQueue();
   }
 
+  List<PointerEvent> readEnginePendingEventsAndClear() {
+    final ui.PointerDataPacket pendingPacket =
+        PlatformDispatcher.pointerDataPacketStorageReadPendingAndClear();
+    // ref: [GestureBinding._handlePointerDataPacket]
+    return PointerEventConverter.expand(
+            pendingPacket.data, window.devicePixelRatio)
+        .toList();
+  }
+
   final Queue<PointerEvent> _pendingPointerEvents = Queue<PointerEvent>();
 
   void _handlePointerDataPacket(ui.PointerDataPacket packet) {
