@@ -160,6 +160,13 @@ abstract class TestWidgetsFlutterBinding extends BindingBase
   TestWindow get window => _window;
   final TestWindow _window;
 
+  final List<PointerEvent> debugOverrideEnginePendingEvents = <PointerEvent>[];
+  List<PointerEvent> readEnginePendingEventsAndClear() {
+    final List<PointerEvent> result = debugOverrideEnginePendingEvents.toList();
+    debugOverrideEnginePendingEvents.clear();
+    return result;
+  }
+
   @override
   TestPlatformDispatcher get platformDispatcher => _window.platformDispatcher;
 
