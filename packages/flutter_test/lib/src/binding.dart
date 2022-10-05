@@ -160,6 +160,9 @@ abstract class TestWidgetsFlutterBinding extends BindingBase
   TestWindow get window => _window;
   final TestWindow _window;
 
+  AdjustedLastVsyncInfo? debugOverrideLastVsyncInfo;
+  AdjustedLastVsyncInfo lastVsyncInfo() => debugOverrideLastVsyncInfo!;
+
   final List<PointerEvent> debugOverrideEnginePendingEvents = <PointerEvent>[];
   List<PointerEvent> readEnginePendingEventsAndClear() {
     final List<PointerEvent> result = debugOverrideEnginePendingEvents.toList();
