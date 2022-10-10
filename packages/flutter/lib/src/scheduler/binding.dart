@@ -304,8 +304,6 @@ mixin SchedulerBinding on BindingBase {
   ///  * [removeTimingsCallback], which can be used to remove a callback
   ///    added using this method.
   void addTimingsCallback(TimingsCallback callback) {
-    print('hi addTimingsCallback $callback');
-    debugPrintStack();
     _timingsCallbacks.add(callback);
     if (_timingsCallbacks.length == 1) {
       assert(platformDispatcher.onReportTimings == null);
@@ -316,8 +314,6 @@ mixin SchedulerBinding on BindingBase {
 
   /// Removes a callback that was earlier added by [addTimingsCallback].
   void removeTimingsCallback(TimingsCallback callback) {
-    print('hi removeTimingsCallback $callback');
-    debugPrintStack();
     assert(_timingsCallbacks.contains(callback));
     _timingsCallbacks.remove(callback);
     if (_timingsCallbacks.isEmpty) {
@@ -327,7 +323,6 @@ mixin SchedulerBinding on BindingBase {
 
   @pragma('vm:notify-debugger-on-exception')
   void _executeTimingsCallbacks(List<FrameTiming> timings) {
-    print('hi _executeTimingsCallbacks $_timingsCallbacks');
     final List<TimingsCallback> clonedCallbacks =
         List<TimingsCallback>.of(_timingsCallbacks);
     for (final TimingsCallback callback in clonedCallbacks) {
