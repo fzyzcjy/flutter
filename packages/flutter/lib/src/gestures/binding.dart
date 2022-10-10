@@ -5,6 +5,7 @@
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:developer';
 import 'dart:ui' as ui show PointerDataPacket;
 
 import 'package:flutter/foundation.dart';
@@ -297,12 +298,14 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
   final Queue<PointerEvent> _pendingPointerEvents = Queue<PointerEvent>();
 
   void _handlePointerDataPacket(ui.PointerDataPacket packet) {
+    Timeline.timeSync('_handlePointerDataPacket', () {
     // We convert pointer data to logical pixels so that e.g. the touch slop can be
     // defined in a device-independent manner.
     _pendingPointerEvents.addAll(PointerEventConverter.expand(packet.data, window.devicePixelRatio));
     if (!locked) {
       _flushPointerEventQueue();
     }
+    });
   }
 
   /// Dispatch a [PointerCancelEvent] for the given pointer soon.
@@ -368,11 +371,14 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
   }
 
   void _handlePointerEventImmediately(PointerEvent event, {HitTestEntryFilter? filter}) {
+    Timeline.timeSync('_handlePointerEventImmediately', () {
     HitTestResult? hitTestResult;
     if (event is PointerDownEvent || event is PointerSignalEvent || event is PointerHoverEvent || event is PointerPanZoomStartEvent) {
       assert(!_hitTests.containsKey(event.pointer), 'Pointer of $event unexpectedly has a HitTestResult associated with it.');
       hitTestResult = HitTestResult();
+      Timeline.startSync('hitTest');
       hitTest(hitTestResult, event.position);
+      Timeline.finishSync();
       if (event is PointerDownEvent || event is PointerPanZoomStartEvent) {
         _hitTests[event.pointer] = hitTestResult;
       }
@@ -404,6 +410,7 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
       assert(event.position != null);
       dispatchEvent(event, hitTestResult, filter: filter);
     }
+    });
   }
 
   /// Determine which [HitTestTarget] objects are located at a given position.
@@ -423,6 +430,7 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
   @override // from HitTestDispatcher
   @pragma('vm:notify-debugger-on-exception')
   void dispatchEvent(PointerEvent event, HitTestResult? hitTestResult, {required HitTestEntryFilter? filter}) {
+    Timeline.timeSync('dispatchEvent', () {
     assert(!locked);
     // No hit test information implies that this is a [PointerAddedEvent] or
     // [PointerRemovedEvent]. These events are specially routed here; other
@@ -466,6 +474,7 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
         ));
       }
     }
+    });
   }
 
   @override // from HitTestTarget
