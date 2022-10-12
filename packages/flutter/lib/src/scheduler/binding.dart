@@ -973,6 +973,8 @@ mixin SchedulerBinding on BindingBase {
     _firstRawTimeStampInEpoch = null;
   }
 
+  Duration adjustForEpoch(Duration rawTimeStamp) => _adjustForEpoch(rawTimeStamp);
+
   /// Adjusts the given time stamp into the current epoch.
   ///
   /// This both offsets the time stamp to account for when the epoch started
