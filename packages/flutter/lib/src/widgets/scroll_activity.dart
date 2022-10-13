@@ -532,7 +532,6 @@ class BallisticScrollActivity extends ScrollActivity {
     this.shouldIgnorePointer,
   ) {
     print('hi ${describeIdentity(this)} constructor simulation=$simulation');
-    debugPrintStack();
     _controller = AnimationController.unbounded(
       debugLabel: kDebugMode ? objectRuntimeType(this, 'BallisticScrollActivity') : null,
       vsync: vsync,

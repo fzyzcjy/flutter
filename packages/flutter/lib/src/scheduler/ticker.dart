@@ -137,6 +137,9 @@ class Ticker {
   /// [isTicking].
   bool get isActive => _future != null;
 
+  // NOTE MODIFIED ADD
+  Duration? get startTime => _startTime;
+
   Duration? _startTime;
 
   /// Starts the clock for this [Ticker]. If the ticker is not [muted], then this
