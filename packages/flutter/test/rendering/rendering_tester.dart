@@ -348,6 +348,9 @@ class FakeTicker implements Ticker {
   @override
   void maybeExtraTick(Duration timeStamp) {
   }
+
+  @override
+  Duration? get startTime => throw UnimplementedError();
 }
 
 class TestClipPaintingContext extends PaintingContext {
