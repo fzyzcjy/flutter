@@ -541,6 +541,8 @@ class BallisticScrollActivity extends ScrollActivity {
        .whenComplete(_end); // won't trigger if we dispose _controller first
   }
 
+  // TODO hack
+  AnimationController get controller => _controller;
   late AnimationController _controller;
 
   @override
