@@ -841,7 +841,7 @@ mixin SchedulerBinding on BindingBase {
   ///    scheduling a frame.
   ///  * [scheduleWarmUpFrame], which ignores the "Vsync" signal entirely and
   ///    triggers a frame immediately.
-  void scheduleFrame() {
+  void scheduleFrame({Duration? forceDirectlyCallNextVsyncTargetTime}) {
     if (_hasScheduledFrame || !framesEnabled) {
       return;
     }
@@ -852,7 +852,7 @@ mixin SchedulerBinding on BindingBase {
       return true;
     }());
     ensureFrameCallbacksRegistered();
-    platformDispatcher.scheduleFrame();
+    platformDispatcher.scheduleFrame(forceDirectlyCallNextVsyncTargetTime: forceDirectlyCallNextVsyncTargetTime);
     _hasScheduledFrame = true;
   }
 

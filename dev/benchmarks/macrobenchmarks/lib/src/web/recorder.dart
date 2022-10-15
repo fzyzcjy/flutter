@@ -1189,12 +1189,12 @@ class _RecordingWidgetsBinding extends BindingBase
   }
 
   @override
-  void scheduleFrame() {
+  void scheduleFrame({Duration? forceDirectlyCallNextVsyncTargetTime}) {
     // Don't keep on truckin' if there's an error or the benchmark has stopped.
     if (_hasErrored || _benchmarkStopped) {
       return;
     }
-    super.scheduleFrame();
+    super.scheduleFrame(forceDirectlyCallNextVsyncTargetTime: forceDirectlyCallNextVsyncTargetTime);
   }
 
   @override

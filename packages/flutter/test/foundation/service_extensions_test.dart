@@ -74,7 +74,7 @@ class TestServiceExtensionsBinding extends BindingBase
 
   bool frameScheduled = false;
   @override
-  void scheduleFrame() {
+  void scheduleFrame({Duration? forceDirectlyCallNextVsyncTargetTime}) {
     ensureFrameCallbacksRegistered();
     frameScheduled = true;
   }

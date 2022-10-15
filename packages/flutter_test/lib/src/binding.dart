@@ -1585,12 +1585,12 @@ class LiveTestWidgetsFlutterBinding extends TestWidgetsFlutterBinding {
   }
 
   @override
-  void scheduleFrame() {
+  void scheduleFrame({Duration? forceDirectlyCallNextVsyncTargetTime}) {
     if (framePolicy == LiveTestWidgetsFlutterBindingFramePolicy.benchmark) {
       // In benchmark mode, don't actually schedule any engine frames.
       return;
     }
-    super.scheduleFrame();
+    super.scheduleFrame(forceDirectlyCallNextVsyncTargetTime: forceDirectlyCallNextVsyncTargetTime);
   }
 
   @override
