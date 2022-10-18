@@ -841,9 +841,13 @@ void main() {
           height: 200,
           width: 200,
           child: Center(
-            child: TextField(
-              controller: OverflowWidgetTextEditingController(),
-              clipBehavior: Clip.none,
+            child: SizedBox(
+              // Make sure the input field is not high enough for the WidgetSpan.
+              height: 50,
+              child: TextField(
+                controller: OverflowWidgetTextEditingController(),
+                clipBehavior: Clip.none,
+              ),
             ),
           ),
         ),
@@ -2948,6 +2952,55 @@ void main() {
     expect(find.text('Copy'), findsNothing);
     expect(find.text('Cut'), findsNothing);
   }, skip: isContextMenuProvidedByPlatform); // [intended] only applies to platforms where we supply the context menu.
+
+  testWidgets('create selection overlay if none exists when toggleToolbar is called', (WidgetTester tester) async {
+    // Regression test for https://github.com/flutter/flutter/issues/111660
+    final Widget testWidget = MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Test'),
+          actions: <Widget>[
+            PopupMenuButton<String>(
+              itemBuilder: (BuildContext context) {
+                return <String>{'About'}.map((String value) {
+                  return PopupMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList();
+              },
+            ),
+          ],
+        ),
+        body: const TextField(),
+      ),
+    );
+
+    await tester.pumpWidget(testWidget);
+
+    // Tap on TextField.
+    final Offset textFieldStart = tester.getTopLeft(find.byType(TextField));
+    final TestGesture gesture = await tester.startGesture(textFieldStart);
+    await tester.pump(const Duration(milliseconds: 300));
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    // Tap on 3 dot menu.
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+
+    // Tap on TextField.
+    await gesture.down(textFieldStart);
+    await tester.pump(const Duration(milliseconds: 300));
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    // Tap on TextField again.
+    await tester.tapAt(textFieldStart);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+  }, variant: const TargetPlatformVariant(<TargetPlatform>{TargetPlatform.iOS}));
 
   testWidgets('TextField height with minLines unset', (WidgetTester tester) async {
     await tester.pumpWidget(textFieldBuilder());
@@ -7546,10 +7599,173 @@ void main() {
       expect(controller.selection.isCollapsed, isTrue);
       expect(controller.selection.baseOffset, isTargetPlatformMobile ? 7 : 6);
 
-      // No toolbar.
-      expect(find.byType(CupertinoButton), findsNothing);
+      // Toolbar shows on iOS.
+      expect(find.byType(CupertinoButton), isContextMenuProvidedByPlatform ? findsNothing : isTargetPlatformMobile ? findsNWidgets(2) : findsNothing);
     },
     variant: const TargetPlatformVariant(<TargetPlatform>{ TargetPlatform.iOS,  TargetPlatform.macOS }),
+  );
+
+  testWidgets(
+    'Tapping on a collapsed selection toggles the toolbar',
+    (WidgetTester tester) async {
+      final TextEditingController controller = TextEditingController(
+        text: 'Atwater Peel Sherbrooke Bonaventure Angrignon Peel Côte-des-Neigse Atwater Peel Sherbrooke Bonaventure Angrignon Peel Côte-des-Neiges',
+      );
+      // On iOS/iPadOS, during a tap we select the edge of the word closest to the tap.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Material(
+            child: Center(
+              child: TextField(
+                controller: controller,
+                maxLines: 2,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final double lineHeight = findRenderEditable(tester).preferredLineHeight;
+      final Offset begPos = textOffsetToPosition(tester, 0);
+      final Offset endPos = textOffsetToPosition(tester, 35) + const Offset(200.0, 0.0); // Index of 'Bonaventure|' + Offset(200.0,0), which is at the end of the first line.
+      final Offset vPos = textOffsetToPosition(tester, 29); // Index of 'Bonav|enture'.
+      final Offset wPos = textOffsetToPosition(tester, 3); // Index of 'Atw|ater'.
+
+      // This tap just puts the cursor somewhere different than where the double
+      // tap will occur to test that the double tap moves the existing cursor first.
+      await tester.tapAt(wPos);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.tapAt(vPos);
+      await tester.pump(const Duration(milliseconds: 500));
+      // First tap moved the cursor. Here we tap the position where 'v' is located.
+      // On iOS this will select the closest word edge, in this case the cursor is placed
+      // at the end of the word 'Bonaventure|'.
+      expect(controller.selection.isCollapsed, true);
+      expect(controller.selection.baseOffset, 35);
+      expect(find.byType(CupertinoButton), findsNothing);
+
+      await tester.tapAt(vPos);
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+      // Second tap toggles the toolbar. Here we tap on 'v' again, and select the word edge. Since
+      // the selection has not changed we toggle the toolbar.
+      expect(controller.selection.isCollapsed, true);
+      expect(controller.selection.baseOffset, 35);
+      expect(find.byType(CupertinoButton), isContextMenuProvidedByPlatform ? findsNothing : findsNWidgets(2));
+
+      // Tap the 'v' position again to hide the toolbar.
+      await tester.tapAt(vPos);
+      await tester.pumpAndSettle();
+      expect(controller.selection.isCollapsed, true);
+      expect(controller.selection.baseOffset, 35);
+      expect(find.byType(CupertinoButton), findsNothing);
+
+      // Long press at the end of the first line to move the cursor to the end of the first line
+      // where the word wrap is. Since there is a word wrap here, and the direction of the text is LTR,
+      // the TextAffinity will be upstream and against the natural direction. The toolbar is also
+      // shown after a long press.
+      await tester.longPressAt(endPos);
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+      expect(controller.selection.isCollapsed, true);
+      expect(controller.selection.baseOffset, 46);
+      expect(controller.selection.affinity, TextAffinity.upstream);
+      expect(find.byType(CupertinoButton), isContextMenuProvidedByPlatform ? findsNothing : findsNWidgets(2));
+
+      // Tap at the same position to toggle the toolbar.
+      await tester.tapAt(endPos);
+      await tester.pumpAndSettle();
+      expect(controller.selection.isCollapsed, true);
+      expect(controller.selection.baseOffset, 46);
+      expect(controller.selection.affinity, TextAffinity.upstream);
+      expect(find.byType(CupertinoButton), findsNothing);
+
+      // Tap at the beginning of the second line to move the cursor to the front of the first word on the
+      // second line, where the word wrap is. Since there is a word wrap here, and the direction of the text is LTR,
+      // the TextAffinity will be downstream and following the natural direction. The toolbar will be hidden after this tap.
+      await tester.tapAt(begPos + Offset(0.0, lineHeight));
+      await tester.pumpAndSettle();
+      expect(controller.selection.isCollapsed, true);
+      expect(controller.selection.baseOffset, 46);
+      expect(controller.selection.affinity, TextAffinity.downstream);
+      expect(find.byType(CupertinoButton), findsNothing);
+    },
+    variant: const TargetPlatformVariant(<TargetPlatform>{ TargetPlatform.iOS }),
+  );
+
+  testWidgets(
+    'Tapping on a non-collapsed selection toggles the toolbar and retains the selection',
+    (WidgetTester tester) async {
+      final TextEditingController controller = TextEditingController(
+        text: 'Atwater Peel Sherbrooke Bonaventure',
+      );
+      // On iOS/iPadOS, during a tap we select the edge of the word closest to the tap.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Material(
+            child: Center(
+              child: TextField(
+                controller: controller,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final Offset vPos = textOffsetToPosition(tester, 29); // Index of 'Bonav|enture'.
+      final Offset ePos = textOffsetToPosition(tester, 35) + const Offset(7.0, 0.0); // Index of 'Bonaventure|' + Offset(7.0,0), which taps slightly to the right of the end of the text.
+      final Offset wPos = textOffsetToPosition(tester, 3); // Index of 'Atw|ater'.
+
+      // This tap just puts the cursor somewhere different than where the double
+      // tap will occur to test that the double tap moves the existing cursor first.
+      await tester.tapAt(wPos);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.tapAt(vPos);
+      await tester.pump(const Duration(milliseconds: 50));
+      // First tap moved the cursor.
+      expect(controller.selection.isCollapsed, true);
+      expect(
+        controller.selection.baseOffset,
+        35,
+      );
+      await tester.tapAt(vPos);
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+
+      // Second tap selects the word around the cursor.
+      expect(
+        controller.selection,
+        const TextSelection(baseOffset: 24, extentOffset: 35),
+      );
+
+      // Selected text shows 3 toolbar buttons.
+      expect(find.byType(CupertinoButton), isContextMenuProvidedByPlatform ? findsNothing : findsNWidgets(3));
+
+      // Tap the selected word to hide the toolbar and retain the selection.
+      await tester.tapAt(vPos);
+      await tester.pumpAndSettle();
+      expect(
+        controller.selection,
+        const TextSelection(baseOffset: 24, extentOffset: 35),
+      );
+      expect(find.byType(CupertinoButton), findsNothing);
+
+      // Tap the selected word to show the toolbar and retain the selection.
+      await tester.tapAt(vPos);
+      await tester.pumpAndSettle();
+      expect(
+        controller.selection,
+        const TextSelection(baseOffset: 24, extentOffset: 35),
+      );
+      expect(find.byType(CupertinoButton), isContextMenuProvidedByPlatform ? findsNothing : findsNWidgets(3));
+
+      // Tap past the selected word to move the cursor and hide the toolbar.
+      await tester.tapAt(ePos);
+      await tester.pumpAndSettle();
+      expect(controller.selection.isCollapsed, true);
+      expect(controller.selection.baseOffset, 35);
+      expect(find.byType(CupertinoButton), findsNothing);
+    },
+    variant: const TargetPlatformVariant(<TargetPlatform>{ TargetPlatform.iOS }),
   );
 
   testWidgets(
@@ -8187,9 +8403,6 @@ void main() {
       final TextEditingController controller = TextEditingController(
         text: 'Atwater Peel Sherbrooke Bonaventure',
       );
-      // On iOS/iPadOS, during a tap we select the edge of the word closest to the tap.
-      // On macOS, we select the precise position of the tap.
-      final bool isTargetPlatformMobile = defaultTargetPlatform == TargetPlatform.iOS;
       await tester.pumpWidget(
         MaterialApp(
           home: Material(
@@ -8206,16 +8419,14 @@ void main() {
 
       await tester.longPressAt(ePos);
       await tester.pump(const Duration(milliseconds: 50));
-
       await tester.tapAt(ePos);
       await tester.pump();
 
-      // We ended up moving the cursor to the edge of the same word and dismissed
-      // the toolbar.
+      // The cursor does not move and the toolbar is toggled.
       expect(controller.selection.isCollapsed, isTrue);
-      expect(controller.selection.baseOffset, isTargetPlatformMobile ? 7 : 6);
+      expect(controller.selection.baseOffset, 6);
 
-      // Collapsed toolbar shows 2 buttons.
+      // The toolbar from the long press is now dismissed by the second tap.
       expect(find.byType(CupertinoButton), findsNothing);
     },
     variant: const TargetPlatformVariant(<TargetPlatform>{ TargetPlatform.iOS,  TargetPlatform.macOS }),
@@ -8940,11 +9151,13 @@ void main() {
       // Double tap selecting the same word somewhere else is fine.
       await tester.tapAt(textfieldStart + const Offset(100.0, 9.0));
       await tester.pump(const Duration(milliseconds: 50));
-      // First tap moved the cursor.
+      // First tap hides the toolbar and retains the selection.
       expect(
         controller.selection,
-        const TextSelection.collapsed(offset: 7, affinity: TextAffinity.upstream),
+        const TextSelection(baseOffset: 0, extentOffset: 7),
       );
+      expect(find.byType(CupertinoButton), findsNothing);
+      // Second tap shows the toolbar and retains the selection.
       await tester.tapAt(textfieldStart + const Offset(100.0, 9.0));
       await tester.pumpAndSettle();
       expect(
@@ -8955,11 +9168,12 @@ void main() {
 
       await tester.tapAt(textfieldStart + const Offset(150.0, 9.0));
       await tester.pump(const Duration(milliseconds: 50));
-      // First tap moved the cursor.
+      // First tap moved the cursor and hid the toolbar.
       expect(
         controller.selection,
         const TextSelection.collapsed(offset: 8),
       );
+      expect(find.byType(CupertinoButton), findsNothing);
       await tester.tapAt(textfieldStart + const Offset(150.0, 9.0));
       await tester.pumpAndSettle();
       expect(
@@ -9068,6 +9282,7 @@ void main() {
         home: Material(
           child: Center(
             child: TextField(
+              maxLines: null,
               controller: controller,
             ),
           ),
@@ -10678,6 +10893,94 @@ void main() {
     await gesture.moveTo(center);
   });
 
+    testWidgets('TextField icons change mouse cursor when hovered', (WidgetTester tester) async {
+    // Test default cursor in icons area.
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Material(
+          child: MouseRegion(
+            cursor: SystemMouseCursors.forbidden,
+            child: TextField(
+              decoration: InputDecoration(
+                icon: Icon(Icons.label),
+                prefixIcon: Icon(Icons.cabin),
+                suffixIcon: Icon(Icons.person),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Center, which is within the text area
+    final Offset center = tester.getCenter(find.byType(TextField));
+    // The Icon area
+    final Offset iconArea = tester.getCenter(find.byIcon(Icons.label));
+    // The prefix Icon area
+    final Offset prefixIconArea = tester.getCenter(find.byIcon(Icons.cabin));
+    // The suffix Icon area
+    final Offset suffixIconArea = tester.getCenter(find.byIcon(Icons.person));
+
+    final TestGesture gesture = await tester.createGesture(kind: PointerDeviceKind.mouse, pointer: 1);
+    await gesture.addPointer(location: center);
+
+    await tester.pump();
+
+    await gesture.moveTo(center);
+    expect(RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1), SystemMouseCursors.text);
+
+    await gesture.moveTo(iconArea);
+    expect(RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1), SystemMouseCursors.basic);
+
+    await gesture.moveTo(prefixIconArea);
+    expect(RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1), SystemMouseCursors.basic);
+
+    await gesture.moveTo(suffixIconArea);
+    expect(RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1), SystemMouseCursors.basic);
+    await gesture.moveTo(center);
+
+    // Test click cursor in icons area for buttons.
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Material(
+          child: MouseRegion(
+            cursor: SystemMouseCursors.forbidden,
+            child: TextField(
+              decoration: InputDecoration(
+                icon: IconButton(
+                  icon: const Icon(Icons.label),
+                  onPressed: () {},
+                ),
+                prefixIcon: IconButton(
+                  icon: const Icon(Icons.cabin),
+                  onPressed: () {},
+                ),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.person),
+                  onPressed: () {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+
+    await gesture.moveTo(center);
+    expect(RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1), SystemMouseCursors.text);
+
+    await gesture.moveTo(iconArea);
+    expect(RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1), SystemMouseCursors.click);
+
+    await gesture.moveTo(prefixIconArea);
+    expect(RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1), SystemMouseCursors.click);
+
+    await gesture.moveTo(suffixIconArea);
+    expect(RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1), SystemMouseCursors.click);
+  });
+
   testWidgets('Text selection menu does not change mouse cursor when hovered', (WidgetTester tester) async {
     final TextEditingController controller = TextEditingController(
       text: 'Atwater Peel Sherbrooke Bonaventure',
@@ -12032,7 +12335,7 @@ void main() {
           textField.magnifierConfiguration!.magnifierBuilder(
               context,
               MagnifierController(),
-              ValueNotifier<MagnifierOverlayInfoBearer>(MagnifierOverlayInfoBearer.empty),
+              ValueNotifier<MagnifierInfo>(MagnifierInfo.empty),
             ),
           isA<Widget>().having(
               (Widget widget) => widget.key,
@@ -12053,7 +12356,7 @@ void main() {
             editableText.magnifierConfiguration.magnifierBuilder(
                 context,
                 MagnifierController(),
-                ValueNotifier<MagnifierOverlayInfoBearer>(MagnifierOverlayInfoBearer.empty),
+                ValueNotifier<MagnifierInfo>(MagnifierInfo.empty),
               ),
             isA<TextMagnifier>());
       }, variant: TargetPlatformVariant.only(TargetPlatform.android));
@@ -12071,7 +12374,7 @@ void main() {
             editableText.magnifierConfiguration.magnifierBuilder(
                 context,
                 MagnifierController(),
-                ValueNotifier<MagnifierOverlayInfoBearer>(MagnifierOverlayInfoBearer.empty),
+                ValueNotifier<MagnifierInfo>(MagnifierInfo.empty),
               ),
             isA<CupertinoTextMagnifier>());
       }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
@@ -12089,7 +12392,7 @@ void main() {
             editableText.magnifierConfiguration.magnifierBuilder(
                 context,
                 MagnifierController(),
-                ValueNotifier<MagnifierOverlayInfoBearer>(MagnifierOverlayInfoBearer.empty),
+                ValueNotifier<MagnifierInfo>(MagnifierInfo.empty),
               ),
             isNull);
       },
@@ -12101,7 +12404,7 @@ void main() {
   });
 
   group('magnifier', () {
-    late ValueNotifier<MagnifierOverlayInfoBearer> infoBearer;
+    late ValueNotifier<MagnifierInfo> magnifierInfo;
     final Widget fakeMagnifier = Container(key: UniqueKey());
 
     testWidgets(
@@ -12117,9 +12420,9 @@ void main() {
               magnifierBuilder: (
                   _,
                   MagnifierController controller,
-                  ValueNotifier<MagnifierOverlayInfoBearer> localInfoBearer
+                  ValueNotifier<MagnifierInfo> localMagnifierInfo
                 ) {
-                  infoBearer = localInfoBearer;
+                  magnifierInfo = localMagnifierInfo;
                   return fakeMagnifier;
                 },
               ),
@@ -12153,14 +12456,14 @@ void main() {
       await tester.pump();
 
       expect(find.byKey(fakeMagnifier.key!), findsOneWidget);
-      final Offset firstDragGesturePosition = infoBearer.value.globalGesturePosition;
+      final Offset firstDragGesturePosition = magnifierInfo.value.globalGesturePosition;
 
       await gesture.moveTo(textOffsetToPosition(tester, testValue.length));
       await tester.pump();
 
       // Expect the position the magnifier gets to have moved.
       expect(firstDragGesturePosition,
-          isNot(infoBearer.value.globalGesturePosition));
+          isNot(magnifierInfo.value.globalGesturePosition));
 
       await gesture.up();
       await tester.pump();
@@ -12182,9 +12485,9 @@ void main() {
                   magnifierBuilder: (
                       _,
                       MagnifierController controller,
-                      ValueNotifier<MagnifierOverlayInfoBearer> localInfoBearer
+                      ValueNotifier<MagnifierInfo> localMagnifierInfo
                     ) {
-                      infoBearer = localInfoBearer;
+                      magnifierInfo = localMagnifierInfo;
                       return fakeMagnifier;
                     },
                 ),
@@ -12214,7 +12517,7 @@ void main() {
       expect(controller.selection.extentOffset, isTargetPlatformAndroid ? 7 : 5);
       expect(find.byKey(fakeMagnifier.key!), findsOneWidget);
 
-      final Offset firstLongPressGesturePosition = infoBearer.value.globalGesturePosition;
+      final Offset firstLongPressGesturePosition = magnifierInfo.value.globalGesturePosition;
 
       // Move the gesture to 'h' on Android to update the magnifier and select 'ghi'.
       // Move the gesture to 'h' on iOS to update the magnifier and move the cursor to 'h'.
@@ -12224,7 +12527,7 @@ void main() {
       expect(controller.selection.extentOffset, isTargetPlatformAndroid ? 11 : 9);
       expect(find.byKey(fakeMagnifier.key!), findsOneWidget);
       // Expect the position the magnifier gets to have moved.
-      expect(firstLongPressGesturePosition, isNot(infoBearer.value.globalGesturePosition));
+      expect(firstLongPressGesturePosition, isNot(magnifierInfo.value.globalGesturePosition));
 
       // End the long press to hide the magnifier.
       await gesture.up();
