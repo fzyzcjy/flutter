@@ -992,15 +992,15 @@ mixin SchedulerBinding on BindingBase {
     return Duration(microseconds: (rawDurationSinceEpoch.inMicroseconds / timeDilation).round() + _epochStart.inMicroseconds);
   }
 
-  // ignore: public_member_api_docs
-  AdjustedLastVsyncInfo lastVsyncInfo() {
-    final LastVsyncInfo raw = platformDispatcher.lastVsyncInfo();
-    return AdjustedLastVsyncInfo(
-      vsyncTargetTimeRaw: raw.vsyncTargetTime,
-      diffDateTimeTimePoint: raw.diffDateTimeTimePoint,
-      vsyncTargetTimeAdjusted: _adjustForEpoch(raw.vsyncTargetTime),
-    );
-  }
+  // // ignore: public_member_api_docs
+  // AdjustedLastVsyncInfo lastVsyncInfo() {
+  //   final LastVsyncInfo raw = platformDispatcher.lastVsyncInfo();
+  //   return AdjustedLastVsyncInfo(
+  //     vsyncTargetTimeRaw: raw.vsyncTargetTime,
+  //     diffDateTimeTimePoint: raw.diffDateTimeTimePoint,
+  //     vsyncTargetTimeAdjusted: _adjustForEpoch(raw.vsyncTargetTime),
+  //   );
+  // }
 
   /// The time stamp for the frame currently being processed.
   ///
