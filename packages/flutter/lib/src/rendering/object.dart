@@ -85,7 +85,6 @@ class PaintingContext extends ClipContext {
     : assert(_containerLayer != null),
       assert(estimatedBounds != null);
 
-  ContainerLayer get containerLayer => _containerLayer;
   final ContainerLayer _containerLayer;
 
   /// An estimate of the bounds within which the painting context's [canvas]
@@ -1077,7 +1076,6 @@ class PipelineOwner {
     }
   }
 
-  List<RenderObject> get nodesNeedingPaint => _nodesNeedingPaint;
   List<RenderObject> _nodesNeedingPaint = <RenderObject>[];
 
   /// Whether this pipeline is currently in the paint phase.
