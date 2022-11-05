@@ -22,7 +22,7 @@ class _NearFullTimePageState extends State<NearFullTimePage> {
     print(
         'NearFullTimePage initState dummy=$dummy'); // avoid it from being optimized
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 2; i++) {
       print('NearFullTimePage setup isolates #$i');
       compute(_heavyFunction, i);
     }
