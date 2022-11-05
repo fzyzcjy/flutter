@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+const String kNearFullTimeRouteName = '/near_full_time';
 const String kCullOpacityRouteName = '/cull_opacity';
 const String kCubicBezierRouteName = '/cubic_bezier';
 const String kBackdropFilterRouteName = '/backdrop_filter';

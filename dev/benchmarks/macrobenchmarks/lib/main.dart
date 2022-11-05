@@ -5,7 +5,6 @@
 import 'package:flutter/material.dart';
 
 import 'common.dart';
-
 import 'src/animated_complex_opacity.dart';
 import 'src/animated_image.dart';
 import 'src/animated_placeholder.dart';
@@ -25,6 +24,7 @@ import 'src/large_image_changer.dart';
 import 'src/large_images.dart';
 import 'src/list_text_layout.dart';
 import 'src/multi_widget_construction.dart';
+import 'src/near_full_time.dart';
 import 'src/opacity_peephole.dart';
 import 'src/picture_cache.dart';
 import 'src/picture_cache_complexity_scoring.dart';
@@ -50,6 +50,7 @@ class MacrobenchmarksApp extends StatelessWidget {
       initialRoute: initialRoute,
       routes: <String, WidgetBuilder>{
         '/': (BuildContext context) => const HomePage(),
+        kNearFullTimeRouteName: (BuildContext context) => const NearFullTimePage(),
         kCullOpacityRouteName: (BuildContext context) => const CullOpacityPage(),
         kCubicBezierRouteName: (BuildContext context) => const CubicBezierPage(),
         kBackdropFilterRouteName: (BuildContext context) => const BackdropFilterPage(),
@@ -99,6 +100,13 @@ class HomePage extends StatelessWidget {
       body: ListView(
         key: const Key(kScrollableName),
         children: <Widget>[
+          ElevatedButton(
+            key: const Key(kNearFullTimeRouteName),
+            child: const Text('Near Full Time'),
+            onPressed: () {
+              Navigator.pushNamed(context, kNearFullTimeRouteName);
+            },
+          ),
           ElevatedButton(
             key: const Key(kCullOpacityRouteName),
             child: const Text('Cull opacity'),
