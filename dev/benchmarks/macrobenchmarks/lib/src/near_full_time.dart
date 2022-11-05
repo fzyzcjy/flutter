@@ -2,8 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -20,7 +19,11 @@ class _NearFullTimePageState extends State<NearFullTimePage> {
   @override
   void initState() {
     super.initState();
-    print(dummy); // avoid it from being optimized
+    print('NearFullTimePage initState dummy=$dummy'); // avoid it from being optimized
+
+    for (int i = 0; i < 4; i++) {
+      compute(_heavyFunction, i);
+    }
   }
 
   @override
@@ -40,4 +43,13 @@ class _NearFullTimePageState extends State<NearFullTimePage> {
 
     return const SizedBox();
   }
+}
+
+// https://github.com/fzyzcjy/flutter_smooth/issues/163#issuecomment-1304379821
+void _heavyFunction(int index) {
+  int dummy = 0;
+  for(int i = 0; i < 1000000000; ++i) {
+    dummy += index.hashCode * i;
+  }
+  print('_heavyFunction nd dummy=$dummy'); // avoid it from being optimized
 }
