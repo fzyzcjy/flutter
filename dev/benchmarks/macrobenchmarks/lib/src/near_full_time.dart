@@ -19,7 +19,8 @@ class _NearFullTimePageState extends State<NearFullTimePage> {
   @override
   void initState() {
     super.initState();
-    print('NearFullTimePage initState dummy=$dummy'); // avoid it from being optimized
+    print(
+        'NearFullTimePage initState dummy=$dummy'); // avoid it from being optimized
 
     for (int i = 0; i < 4; i++) {
       print('NearFullTimePage setup isolates #$i');
@@ -31,11 +32,12 @@ class _NearFullTimePageState extends State<NearFullTimePage> {
   Widget build(BuildContext context) {
     print('NearFullTimePage build');
 
-    SchedulerBinding.instance.addPostFrameCallback((Duration timeStamp) {
+    () async {
+      await SchedulerBinding.instance.endOfFrame;
       if (mounted) {
         setState(() {});
       }
-    });
+    }();
 
     // mimic when build/layout is near deadline
     final Stopwatch stopwatch = Stopwatch()..start();
@@ -52,8 +54,9 @@ class _NearFullTimePageState extends State<NearFullTimePage> {
 void _heavyFunction(int index) {
   print('_heavyFunction start index=$index');
   int dummy = 0;
-  for(int i = 0; i < 1000000000; ++i) {
+  for (int i = 0; i < 1000000000; ++i) {
     dummy += index.hashCode * i;
   }
-  print('_heavyFunction end index=$index dummy=$dummy'); // avoid it from being optimized
+  print(
+      '_heavyFunction end index=$index dummy=$dummy'); // avoid it from being optimized
 }
