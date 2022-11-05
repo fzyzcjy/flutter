@@ -22,7 +22,10 @@ class _NearFullTimePageState extends State<NearFullTimePage> {
     print(
         'NearFullTimePage initState dummy=$dummy'); // avoid it from being optimized
 
-    for (int i = 0; i < 2; i++) {
+    // num isolate should not be too many, o/w seems to make main thread
+    // cannot be executed (?)
+    // https://github.com/fzyzcjy/flutter_smooth/issues/163#issuecomment-1304381360
+    for (int i = 0; i < 3; i++) {
       print('NearFullTimePage setup isolates #$i');
       compute(_heavyFunction, i);
     }
@@ -30,7 +33,7 @@ class _NearFullTimePageState extends State<NearFullTimePage> {
 
   @override
   Widget build(BuildContext context) {
-    print('NearFullTimePage build');
+    // print('NearFullTimePage build');
 
     () async {
       await SchedulerBinding.instance.endOfFrame;
