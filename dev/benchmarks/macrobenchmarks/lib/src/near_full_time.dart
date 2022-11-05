@@ -22,12 +22,15 @@ class _NearFullTimePageState extends State<NearFullTimePage> {
     print('NearFullTimePage initState dummy=$dummy'); // avoid it from being optimized
 
     for (int i = 0; i < 4; i++) {
+      print('NearFullTimePage setup isolates #$i');
       compute(_heavyFunction, i);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    print('NearFullTimePage build');
+
     SchedulerBinding.instance.addPostFrameCallback((Duration timeStamp) {
       if (mounted) {
         setState(() {});
@@ -47,9 +50,10 @@ class _NearFullTimePageState extends State<NearFullTimePage> {
 
 // https://github.com/fzyzcjy/flutter_smooth/issues/163#issuecomment-1304379821
 void _heavyFunction(int index) {
+  print('_heavyFunction start index=$index');
   int dummy = 0;
   for(int i = 0; i < 1000000000; ++i) {
     dummy += index.hashCode * i;
   }
-  print('_heavyFunction nd dummy=$dummy'); // avoid it from being optimized
+  print('_heavyFunction end index=$index dummy=$dummy'); // avoid it from being optimized
 }
