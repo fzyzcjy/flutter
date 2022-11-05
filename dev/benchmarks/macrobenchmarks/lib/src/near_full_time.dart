@@ -44,7 +44,7 @@ class _NearFullTimePageState extends State<NearFullTimePage> {
 
     // mimic when build/layout is near deadline
     final Stopwatch stopwatch = Stopwatch()..start();
-    while (stopwatch.elapsed < const Duration(microseconds: 14500)) {
+    while (stopwatch.elapsed < const Duration(microseconds: 14500 + 16667 * 5)) {
       dummy++;
     }
     stopwatch.stop();
