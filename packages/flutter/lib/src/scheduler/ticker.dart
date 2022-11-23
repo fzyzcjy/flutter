@@ -137,6 +137,9 @@ class Ticker {
   /// [isTicking].
   bool get isActive => _future != null;
 
+  // NOTE MODIFIED ADD
+  Duration? get startTime => _startTime;
+
   Duration? _startTime;
 
   /// Starts the clock for this [Ticker]. If the ticker is not [muted], then this
@@ -155,6 +158,7 @@ class Ticker {
   /// By convention, this method is used by the object that receives the ticks
   /// (as opposed to the [TickerProvider] which created the ticker).
   TickerFuture start() {
+    // debugPrint('${describeIdentity(this)} start');
     assert(() {
       if (isActive) {
         throw FlutterError.fromParts(<DiagnosticsNode>[
@@ -199,6 +203,7 @@ class Ticker {
   /// By convention, this method is used by the object that receives the ticks
   /// (as opposed to the [TickerProvider] which created the ticker).
   void stop({ bool canceled = false }) {
+    // debugPrint('${describeIdentity(this)} stop');
     if (!isActive) {
       return;
     }
@@ -241,6 +246,7 @@ class Ticker {
   bool get shouldScheduleTick => !muted && isActive && !scheduled;
 
   void _tick(Duration timeStamp) {
+    // debugPrint('${describeIdentity(this)} _tick timeStamp=$timeStamp');
     assert(isTicking);
     assert(scheduled);
     _animationId = null;
@@ -252,6 +258,16 @@ class Ticker {
     // example by calling stop then start again.
     if (shouldScheduleTick) {
       scheduleTick(rescheduling: true);
+    }
+  }
+
+  // ignore: public_member_api_docs
+  void maybeExtraTick(Duration timeStamp) {
+    // debugPrint(
+    //     '${describeIdentity(this)} extraTick timeStamp=$timeStamp isActive=$isActive');
+    if (isActive) {
+      _startTime ??= timeStamp;
+      _onTick(timeStamp - _startTime!);
     }
   }
 

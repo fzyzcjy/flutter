@@ -828,6 +828,7 @@ class AnimationController extends Animation<double>
     final double elapsedInSeconds = elapsed.inMicroseconds.toDouble() / Duration.microsecondsPerSecond;
     assert(elapsedInSeconds >= 0.0);
     _value = clampDouble(_simulation!.x(elapsedInSeconds), lowerBound, upperBound);
+    // print('hi ${describeIdentity(this)}._tick elapsed=$elapsed value=$_value');
     if (_simulation!.isDone(elapsedInSeconds)) {
       _status = (_direction == _AnimationDirection.forward) ?
         AnimationStatus.completed :

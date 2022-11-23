@@ -324,7 +324,7 @@ mixin RendererBinding on BindingBase, ServicesBinding, SchedulerBinding, Gesture
   }
 
   @override // from GestureBinding
-  void dispatchEvent(PointerEvent event, HitTestResult? hitTestResult) {
+  void dispatchEvent(PointerEvent event, HitTestResult? hitTestResult, {required HitTestEntryFilter? filter}) {
     _mouseTracker!.updateWithEvent(
       event,
       // Enter and exit events should be triggered with or without buttons
@@ -333,7 +333,7 @@ mixin RendererBinding on BindingBase, ServicesBinding, SchedulerBinding, Gesture
       // update the hovering events.
       () => (hitTestResult == null || event is PointerMoveEvent) ? renderView.hitTestMouseTrackers(event.position) : hitTestResult,
     );
-    super.dispatchEvent(event, hitTestResult);
+    super.dispatchEvent(event, hitTestResult, filter: filter);
   }
 
   void _handleSemanticsEnabledChanged() {

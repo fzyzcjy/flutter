@@ -216,6 +216,7 @@ class SlideTransition extends AnimatedWidget {
     if (textDirection == TextDirection.rtl) {
       offset = Offset(-offset.dx, offset.dy);
     }
+    // print('$this offset=$offset');
     return FractionalTranslation(
       translation: offset,
       transformHitTests: transformHitTests,

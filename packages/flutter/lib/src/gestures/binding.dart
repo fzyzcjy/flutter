@@ -285,6 +285,15 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
     _flushPointerEventQueue();
   }
 
+  List<PointerEvent> readEnginePendingEventsAndClear() {
+    final ui.PointerDataPacket pendingPacket =
+        PlatformDispatcher.pointerDataPacketStorageReadPendingAndClear();
+    // ref: [GestureBinding._handlePointerDataPacket]
+    return PointerEventConverter.expand(
+            pendingPacket.data, window.devicePixelRatio)
+        .toList();
+  }
+
   final Queue<PointerEvent> _pendingPointerEvents = Queue<PointerEvent>();
 
   void _handlePointerDataPacket(ui.PointerDataPacket packet) {
@@ -311,7 +320,7 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
     assert(!locked);
 
     while (_pendingPointerEvents.isNotEmpty) {
-      handlePointerEvent(_pendingPointerEvents.removeFirst());
+      handlePointerEvent(_pendingPointerEvents.removeFirst(), filter: null);
     }
   }
 
@@ -342,7 +351,7 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
   ///    preceding [PointerDownEvent]s.
   ///  * [PointerHoverEvent]s, [PointerAddedEvent]s, and [PointerRemovedEvent]s
   ///    are dispatched without a hit test result.
-  void handlePointerEvent(PointerEvent event) {
+  void handlePointerEvent(PointerEvent event, {HitTestEntryFilter? filter}) {
     assert(!locked);
 
     if (resamplingEnabled) {
@@ -354,10 +363,10 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
     // Stop resampler if resampling is not enabled. This is a no-op if
     // resampling was never enabled.
     _resampler.stop();
-    _handlePointerEventImmediately(event);
+    _handlePointerEventImmediately(event, filter: filter);
   }
 
-  void _handlePointerEventImmediately(PointerEvent event) {
+  void _handlePointerEventImmediately(PointerEvent event, {HitTestEntryFilter? filter}) {
     HitTestResult? hitTestResult;
     if (event is PointerDownEvent || event is PointerSignalEvent || event is PointerHoverEvent || event is PointerPanZoomStartEvent) {
       assert(!_hitTests.containsKey(event.pointer), 'Pointer of $event unexpectedly has a HitTestResult associated with it.');
@@ -392,7 +401,7 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
         event is PointerAddedEvent ||
         event is PointerRemovedEvent) {
       assert(event.position != null);
-      dispatchEvent(event, hitTestResult);
+      dispatchEvent(event, hitTestResult, filter: filter);
     }
   }
 
@@ -412,7 +421,7 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
   /// [PointerRemovedEvent]s.
   @override // from HitTestDispatcher
   @pragma('vm:notify-debugger-on-exception')
-  void dispatchEvent(PointerEvent event, HitTestResult? hitTestResult) {
+  void dispatchEvent(PointerEvent event, HitTestResult? hitTestResult, {required HitTestEntryFilter? filter}) {
     assert(!locked);
     // No hit test information implies that this is a [PointerAddedEvent] or
     // [PointerRemovedEvent]. These events are specially routed here; other
@@ -437,7 +446,10 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
     }
     for (final HitTestEntry entry in hitTestResult.path) {
       try {
-        entry.target.handleEvent(event.transformed(entry.transform), entry);
+        // NOTE MODIFIED ADD
+        if (filter?.call(entry) ?? true) {
+          entry.target.handleEvent(event.transformed(entry.transform), entry);
+        }
       } catch (exception, stack) {
         FlutterError.reportError(FlutterErrorDetailsForPointerEventDispatcher(
           exception: exception,

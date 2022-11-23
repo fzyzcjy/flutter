@@ -1221,7 +1221,7 @@ class SliverGrid extends SliverMultiBoxAdaptorWidget {
   ///
   /// See also:
   ///
-  ///  * [GridView.count], the equivalent constructor for [GridView] widgets.
+  ///  * [GridView.buildCount], the equivalent constructor for [GridView] widgets.
   SliverGrid.count({
     super.key,
     required int crossAxisCount,

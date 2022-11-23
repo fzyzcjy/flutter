@@ -34,7 +34,7 @@ abstract class HitTestDispatcher {
   HitTestDispatcher._();
 
   /// Override this method to dispatch events.
-  void dispatchEvent(PointerEvent event, HitTestResult result);
+  void dispatchEvent(PointerEvent event, HitTestResult result, {required HitTestEntryFilter? filter});
 }
 
 /// An object that can handle events.
@@ -295,3 +295,5 @@ class HitTestResult {
   @override
   String toString() => 'HitTestResult(${_path.isEmpty ? "<empty path>" : _path.join(", ")})';
 }
+
+typedef HitTestEntryFilter = bool Function(HitTestEntry);

@@ -487,15 +487,22 @@ abstract class Finder {
   /// [Offstage] widgets, as well as children of inactive [Route]s.
   final bool skipOffstage;
 
+  static List<Element> Function()? rootElements;
+
   /// Returns all the [Element]s that will be considered by this finder.
   ///
   /// See [collectAllElementsFrom].
   @protected
   Iterable<Element> get allCandidates {
-    return collectAllElementsFrom(
-      WidgetsBinding.instance.renderViewElement!,
-      skipOffstage: skipOffstage,
-    );
+    // NOTE MODIFIED
+    return (rootElements?.call() ??
+            <Element>[WidgetsBinding.instance.renderViewElement!])
+        .expand((Element element) =>
+            collectAllElementsFrom(element, skipOffstage: skipOffstage));
+    // return collectAllElementsFrom(
+    //   WidgetsBinding.instance.renderViewElement!,
+    //   skipOffstage: skipOffstage,
+    // );
   }
 
   Iterable<Element>? _cachedResult;

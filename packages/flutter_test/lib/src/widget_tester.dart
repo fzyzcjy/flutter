@@ -826,7 +826,7 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
   /// showing possible [Finder]s that can be used to interact with the widget at
   /// the location of [result].
   @override
-  void dispatchEvent(PointerEvent event, HitTestResult result) {
+  void dispatchEvent(PointerEvent event, HitTestResult result, {required HitTestEntryFilter? filter}) {
     if (event is PointerDownEvent) {
       final RenderObject innerTarget = result.path
         .map((HitTestEntry candidate) => candidate.target)

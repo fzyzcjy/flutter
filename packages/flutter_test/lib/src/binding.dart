@@ -191,6 +191,13 @@ abstract class TestWidgetsFlutterBinding extends BindingBase
   TestWindow get window => _window;
   final TestWindow _window;
 
+  final List<PointerEvent> debugOverrideEnginePendingEvents = <PointerEvent>[];
+  List<PointerEvent> readEnginePendingEventsAndClear() {
+    final List<PointerEvent> result = debugOverrideEnginePendingEvents.toList();
+    debugOverrideEnginePendingEvents.clear();
+    return result;
+  }
+
   @override
   TestPlatformDispatcher get platformDispatcher => _window.platformDispatcher;
 
@@ -570,7 +577,7 @@ abstract class TestWidgetsFlutterBinding extends BindingBase
     PointerEvent event, {
     TestBindingEventSource source = TestBindingEventSource.device,
   }) {
-    withPointerEventSource(source, () => handlePointerEvent(event));
+    withPointerEventSource(source, () => handlePointerEvent(event, filter: null));
   }
 
   /// Sets [pointerEventSource] to `source`, runs `task`, then resets `source`
@@ -1166,6 +1173,10 @@ class AutomatedTestWidgetsFlutterBinding extends TestWidgetsFlutterBinding {
   @override
   int get microtaskCount => _currentFakeAsync!.microtaskCount;
 
+  /// In order to let animation get accurate time information during [pump],
+  /// set the [accurate] flag to true. Default is false for compatibility.
+  bool accuratePump = false;
+
   @override
   Future<void> pump([ Duration? duration, EnginePhase newPhase = EnginePhase.sendSemanticsUpdate ]) {
     return TestAsyncUtils.guard<void>(() {
@@ -1178,9 +1189,11 @@ class AutomatedTestWidgetsFlutterBinding extends TestWidgetsFlutterBinding {
       if (hasScheduledFrame) {
         addTime(const Duration(milliseconds: 500));
         _currentFakeAsync!.flushMicrotasks();
-        handleBeginFrame(Duration(
-          milliseconds: _clock!.now().millisecondsSinceEpoch,
-        ));
+        handleBeginFrame(
+          accuratePump
+              ? Duration(microseconds: _clock!.now().microsecondsSinceEpoch)
+              : Duration(milliseconds: _clock!.now().millisecondsSinceEpoch)
+        );
         _currentFakeAsync!.flushMicrotasks();
         handleDrawFrame();
       }
@@ -1662,12 +1675,12 @@ class LiveTestWidgetsFlutterBinding extends TestWidgetsFlutterBinding {
   }
 
   @override
-  void scheduleFrame() {
+  void scheduleFrame({Duration? forceDirectlyCallNextVsyncTargetTime}) {
     if (framePolicy == LiveTestWidgetsFlutterBindingFramePolicy.benchmark) {
       // In benchmark mode, don't actually schedule any engine frames.
       return;
     }
-    super.scheduleFrame();
+    super.scheduleFrame(forceDirectlyCallNextVsyncTargetTime: forceDirectlyCallNextVsyncTargetTime);
   }
 
   @override
@@ -1759,7 +1772,7 @@ class LiveTestWidgetsFlutterBinding extends TestWidgetsFlutterBinding {
   /// the event, after being transformed to the local coordinate system, is
   /// forwarded to [deviceEventDispatcher].
   @override
-  void handlePointerEvent(PointerEvent event) {
+  void handlePointerEvent(PointerEvent event, {HitTestEntryFilter? filter}) {
     switch (pointerEventSource) {
       case TestBindingEventSource.test:
         final _LiveTestPointerRecord? record = _liveTestRenderView._pointers[event.pointer];
@@ -1776,11 +1789,11 @@ class LiveTestWidgetsFlutterBinding extends TestWidgetsFlutterBinding {
           );
           _handleViewNeedsPaint();
         }
-        super.handlePointerEvent(event);
+        super.handlePointerEvent(event, filter: filter);
         break;
       case TestBindingEventSource.device:
         if (shouldPropagateDevicePointerEvents) {
-          super.handlePointerEvent(event);
+          super.handlePointerEvent(event, filter: filter);
           break;
         }
         if (deviceEventDispatcher != null) {
@@ -1789,7 +1802,7 @@ class LiveTestWidgetsFlutterBinding extends TestWidgetsFlutterBinding {
           // coordinate space used by the testing widgets.
           final PointerEvent localEvent = event.copyWith(position: globalToLocal(event.position));
           withPointerEventSource(TestBindingEventSource.device,
-            () => super.handlePointerEvent(localEvent)
+            () => super.handlePointerEvent(localEvent, filter: filter)
           );
         }
         break;
@@ -1797,20 +1810,20 @@ class LiveTestWidgetsFlutterBinding extends TestWidgetsFlutterBinding {
   }
 
   @override
-  void dispatchEvent(PointerEvent event, HitTestResult? hitTestResult) {
+  void dispatchEvent(PointerEvent event, HitTestResult? hitTestResult, {required HitTestEntryFilter? filter}) {
     switch (pointerEventSource) {
       case TestBindingEventSource.test:
-        super.dispatchEvent(event, hitTestResult);
+        super.dispatchEvent(event, hitTestResult, filter: filter);
         break;
       case TestBindingEventSource.device:
         assert(hitTestResult != null || event is PointerAddedEvent || event is PointerRemovedEvent);
         if (shouldPropagateDevicePointerEvents) {
-          super.dispatchEvent(event, hitTestResult);
+          super.dispatchEvent(event, hitTestResult, filter: filter);
           break;
         }
         assert(deviceEventDispatcher != null);
         if (hitTestResult != null) {
-          deviceEventDispatcher!.dispatchEvent(event, hitTestResult);
+          deviceEventDispatcher!.dispatchEvent(event, hitTestResult, filter: filter);
         }
         break;
     }

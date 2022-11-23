@@ -227,4 +227,13 @@ class ClampingScrollSimulation extends Simulation {
   bool isDone(double time) {
     return time >= _duration;
   }
+
+  @override
+  String toString() => 'ClampingScrollSimulation{'
+      'position: $position, '
+      'velocity: $velocity, '
+      'friction: $friction, '
+      '_duration: $_duration, '
+      '_distance: $_distance'
+      '}';
 }

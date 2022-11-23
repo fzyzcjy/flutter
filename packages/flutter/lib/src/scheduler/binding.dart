@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:developer' show Flow, Timeline, TimelineTask;
 import 'dart:ui' show AppLifecycleState, DartPerformanceMode, FramePhase, FrameTiming, PlatformDispatcher, TimingsCallback;
+import 'dart:ui';
 
 import 'package:collection/collection.dart' show HeapPriorityQueue, PriorityQueue;
 import 'package:flutter/foundation.dart';
@@ -236,11 +237,12 @@ mixin SchedulerBinding on BindingBase {
     super.initInstances();
     _instance = this;
 
-    if (!kReleaseMode) {
-      addTimingsCallback((List<FrameTiming> timings) {
-        timings.forEach(_profileFramePostEvent);
-      });
-    }
+    // NOTE MODIFIED HACK #6127
+    // if (!kReleaseMode) {
+    //   addTimingsCallback((List<FrameTiming> timings) {
+    //     timings.forEach(_profileFramePostEvent);
+    //   });
+    // }
   }
 
   /// The current [SchedulerBinding], if one has been created.
@@ -857,7 +859,7 @@ mixin SchedulerBinding on BindingBase {
   ///    scheduling a frame.
   ///  * [scheduleWarmUpFrame], which ignores the "Vsync" signal entirely and
   ///    triggers a frame immediately.
-  void scheduleFrame() {
+  void scheduleFrame({Duration? forceDirectlyCallNextVsyncTargetTime}) {
     if (_hasScheduledFrame || !framesEnabled) {
       return;
     }
@@ -868,7 +870,7 @@ mixin SchedulerBinding on BindingBase {
       return true;
     }());
     ensureFrameCallbacksRegistered();
-    platformDispatcher.scheduleFrame();
+    platformDispatcher.scheduleFrame(forceDirectlyCallNextVsyncTargetTime: forceDirectlyCallNextVsyncTargetTime);
     _hasScheduledFrame = true;
   }
 
@@ -989,6 +991,8 @@ mixin SchedulerBinding on BindingBase {
     _firstRawTimeStampInEpoch = null;
   }
 
+  Duration adjustForEpoch(Duration rawTimeStamp) => _adjustForEpoch(rawTimeStamp);
+
   /// Adjusts the given time stamp into the current epoch.
   ///
   /// This both offsets the time stamp to account for when the epoch started
@@ -1002,6 +1006,16 @@ mixin SchedulerBinding on BindingBase {
     return Duration(microseconds: (rawDurationSinceEpoch.inMicroseconds / timeDilation).round() + _epochStart.inMicroseconds);
   }
 
+  // // ignore: public_member_api_docs
+  // AdjustedLastVsyncInfo lastVsyncInfo() {
+  //   final LastVsyncInfo raw = platformDispatcher.lastVsyncInfo();
+  //   return AdjustedLastVsyncInfo(
+  //     vsyncTargetTimeRaw: raw.vsyncTargetTime,
+  //     diffDateTimeTimePoint: raw.diffDateTimeTimePoint,
+  //     vsyncTargetTimeAdjusted: _adjustForEpoch(raw.vsyncTargetTime),
+  //   );
+  // }
+
   /// The time stamp for the frame currently being processed.
   ///
   /// This is only valid while between the start of [handleBeginFrame] and the
@@ -1012,6 +1026,8 @@ mixin SchedulerBinding on BindingBase {
     return _currentFrameTimeStamp!;
   }
   Duration? _currentFrameTimeStamp;
+
+  int? currentFrameStartTimeUs;
 
   /// The raw time stamp as provided by the engine to
   /// [dart:ui.PlatformDispatcher.onBeginFrame] for the frame currently being
@@ -1108,6 +1124,9 @@ mixin SchedulerBinding on BindingBase {
     if (rawTimeStamp != null) {
       _lastRawTimeStamp = rawTimeStamp;
     }
+
+    // NOTE add
+    currentFrameStartTimeUs = DateTime.now().microsecondsSinceEpoch;
 
     assert(() {
       _debugFrameNumber += 1;
@@ -1240,16 +1259,17 @@ mixin SchedulerBinding on BindingBase {
     }
   }
 
-  void _profileFramePostEvent(FrameTiming frameTiming) {
-    postEvent('Flutter.Frame', <String, dynamic>{
-      'number': frameTiming.frameNumber,
-      'startTime': frameTiming.timestampInMicroseconds(FramePhase.buildStart),
-      'elapsed': frameTiming.totalSpan.inMicroseconds,
-      'build': frameTiming.buildDuration.inMicroseconds,
-      'raster': frameTiming.rasterDuration.inMicroseconds,
-      'vsyncOverhead': frameTiming.vsyncOverhead.inMicroseconds,
-    });
-  }
+  // NOTE MODIFIED HACK #6127
+  // void _profileFramePostEvent(FrameTiming frameTiming) {
+  //   postEvent('Flutter.Frame', <String, dynamic>{
+  //     'number': frameTiming.frameNumber,
+  //     'startTime': frameTiming.timestampInMicroseconds(FramePhase.buildStart),
+  //     'elapsed': frameTiming.totalSpan.inMicroseconds,
+  //     'build': frameTiming.buildDuration.inMicroseconds,
+  //     'raster': frameTiming.rasterDuration.inMicroseconds,
+  //     'vsyncOverhead': frameTiming.vsyncOverhead.inMicroseconds,
+  //   });
+  // }
 
   static void _debugDescribeTimeStamp(Duration timeStamp, StringBuffer buffer) {
     if (timeStamp.inDays > 0) {
@@ -1322,4 +1342,31 @@ bool defaultSchedulingStrategy({ required int priority, required SchedulerBindin
     return priority >= Priority.animation.value;
   }
   return true;
+}
+
+// ignore: public_member_api_docs
+class AdjustedLastVsyncInfo {
+  // ignore: public_member_api_docs
+  const AdjustedLastVsyncInfo({
+    required this.vsyncTargetTimeRaw,
+    required this.diffDateTimeTimePoint,
+    required this.vsyncTargetTimeAdjusted,
+  });
+
+  final Duration vsyncTargetTimeRaw;
+  final int diffDateTimeTimePoint;
+  final Duration vsyncTargetTimeAdjusted;
+
+  @override
+  String toString() => 'AdjustedLastVsyncInfo{'
+      'vsyncTargetTimeRaw: $vsyncTargetTimeRaw, '
+      'vsyncTargetDateTime: $vsyncTargetDateTime, '
+      'diffDateTimeTimePoint: $diffDateTimeTimePoint, '
+      'vsyncTargetTimeAdjusted: $vsyncTargetTimeAdjusted,'
+      '}';
+}
+
+extension ExtAdjustedLastVsyncInfo on AdjustedLastVsyncInfo {
+  DateTime get vsyncTargetDateTime => DateTime.fromMicrosecondsSinceEpoch(
+      vsyncTargetTimeRaw.inMicroseconds + diffDateTimeTimePoint);
 }

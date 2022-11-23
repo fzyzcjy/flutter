@@ -383,8 +383,8 @@ class TestWindow implements ui.SingletonFlutterWindow {
   }
 
   @override
-  void render(ui.Scene scene) {
-    _window.render(scene);
+  void render(ui.Scene scene, {Duration? fallbackVsyncTargetTime}) {
+    _window.render(scene, fallbackVsyncTargetTime: fallbackVsyncTargetTime);
   }
 
   @override

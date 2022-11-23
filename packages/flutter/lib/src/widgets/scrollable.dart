@@ -714,6 +714,7 @@ class ScrollableState extends State<Scrollable> with TickerProviderStateMixin, R
   }
 
   void _handleDragUpdate(DragUpdateDetails details) {
+    // print('hi $runtimeType _handleDragUpdate $details');
     // _drag might be null if the drag activity ended and called _disposeDrag.
     assert(_hold == null || _drag == null);
     _drag?.update(details);
