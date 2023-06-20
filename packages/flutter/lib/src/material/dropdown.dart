@@ -190,6 +190,7 @@ class _DropdownMenuItemButtonState<T> extends State<_DropdownMenuItemButton<T>> 
         child: child,
       );
     }
+    child = dropdownMenuItem.buildWrapper?.call(child) ?? child; // NOTE MODIFIED add
     return child;
   }
 }
@@ -742,6 +743,7 @@ class DropdownMenuItem<T> extends _DropdownMenuItemContainer {
     this.enabled = true,
     super.alignment,
     required super.child,
+    this.buildWrapper,
   });
 
   /// Called when the dropdown menu item is tapped.
@@ -756,6 +758,8 @@ class DropdownMenuItem<T> extends _DropdownMenuItemContainer {
   ///
   /// Defaults to `true`.
   final bool enabled;
+
+  final Widget Function(Widget)? buildWrapper; // NOTE MODIFIED add
 }
 
 /// An inherited widget that causes any descendant [DropdownButton]

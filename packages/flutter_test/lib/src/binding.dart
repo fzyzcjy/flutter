@@ -422,6 +422,8 @@ abstract class TestWidgetsFlutterBinding extends BindingBase
   /// [LiveTestWidgetsFlutterBinding] (tests running using `flutter run`).
   test_package.Timeout get defaultTestTimeout;
 
+  bool get runningAsyncTasks; // NOTE MODIFIED add
+
   /// The current time.
   ///
   /// In the automated test environment (`flutter test`), this is a fake clock
@@ -718,6 +720,14 @@ abstract class TestWidgetsFlutterBinding extends BindingBase
   late StackTraceDemangler _oldStackTraceDemangler;
   FlutterErrorDetails? _pendingExceptionDetails;
 
+  // NOTE MODIFIED ADD
+  FlutterErrorDetails? takeExceptionDetails() {
+    assert(inTest);
+    final FlutterErrorDetails? result = _pendingExceptionDetails;
+    _pendingExceptionDetails = null;
+    return result;
+  }
+
   _MockMessageHandler? _announcementHandler;
   List<CapturedAccessibilityAnnouncement> _announcements =
       <CapturedAccessibilityAnnouncement>[];
@@ -845,6 +855,8 @@ abstract class TestWidgetsFlutterBinding extends BindingBase
     }
   }
 
+  static bool Function(Object exception, StackTrace stack)? onRunTestHandleUncaughtError; // NOTE ADD
+
   Future<void> _runTest(
     Future<void> Function() testBody,
     VoidCallback invariantTester,
@@ -899,6 +911,12 @@ abstract class TestWidgetsFlutterBinding extends BindingBase
     final Completer<void> testCompleter = Completer<void>();
     final VoidCallback testCompletionHandler = _createTestCompletionHandler(description, testCompleter);
     void handleUncaughtError(Object exception, StackTrace stack) {
+      // #9271
+      if (onRunTestHandleUncaughtError?.call(exception, stack) ?? false) {
+        print('$runtimeType.runTest.handleUncaughtError skip operating, since onRunTestHandleUncaughtError says true');
+        return;
+      }
+
       if (testCompleter.isCompleted) {
         // Well this is not a good sign.
         // Ideally, once the test has failed we would stop getting errors from the test.
@@ -1219,6 +1237,8 @@ class AutomatedTestWidgetsFlutterBinding extends TestWidgetsFlutterBinding {
 
   FakeAsync? _currentFakeAsync; // set in runTest; cleared in postTest
   Completer<void>? _pendingAsyncTasks;
+
+  bool get runningAsyncTasks => _pendingAsyncTasks != null; // NOTE MODIFIED add
 
   @override
   Clock get clock {
@@ -1722,6 +1742,8 @@ class LiveTestWidgetsFlutterBinding extends TestWidgetsFlutterBinding {
   bool _expectingFrameToReassemble = false;
   bool _viewNeedsPaint = false;
   bool _runningAsyncTasks = false;
+
+  bool get runningAsyncTasks => _runningAsyncTasks; // NOTE MODIFIED add
 
   /// The strategy for [pump]ing and requesting new frames.
   ///

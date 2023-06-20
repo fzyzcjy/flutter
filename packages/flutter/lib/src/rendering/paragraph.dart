@@ -292,6 +292,8 @@ class RenderParagraph extends RenderBox with ContainerRenderObjectMixin<RenderBo
     this.registrar = registrar;
   }
 
+  double get preferredLineHeight => _textPainter.preferredLineHeight; // NOTE MODIFIED add
+
   static final String _placeholderCharacter = String.fromCharCode(PlaceholderSpan.placeholderCodeUnit);
   final TextPainter _textPainter;
 

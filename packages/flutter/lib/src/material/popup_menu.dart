@@ -775,6 +775,9 @@ class _PopupMenuRouteLayout extends SingleChildLayoutDelegate {
   }
 }
 
+// NOTE MODIFIED add
+typedef PopupMenuRoute<T> = _PopupMenuRoute<T>;
+
 class _PopupMenuRoute<T> extends PopupRoute<T> {
   _PopupMenuRoute({
     required this.position,

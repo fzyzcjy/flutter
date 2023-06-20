@@ -167,6 +167,9 @@ class WordBoundary extends TextBoundary {
   /// Creates a [WordBoundary] with the text and layout information.
   WordBoundary._(this._text, this._paragraph);
 
+  // NOTE MODIFIED ADD
+  WordBoundary.hackPublicConstructor(this._text, this._paragraph);
+
   final InlineSpan _text;
   final ui.Paragraph _paragraph;
 

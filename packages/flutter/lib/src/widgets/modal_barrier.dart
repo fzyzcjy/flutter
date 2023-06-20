@@ -91,6 +91,9 @@ class _RenderSemanticsClipper extends RenderProxyBox {
     return clippedRect;
   }
 
+  // NOTE MODIFIED add
+  static Widget Function(Widget child)? buildWrapper;
+
   @override
   void attach(PipelineOwner owner) {
     super.attach(owner);
@@ -203,6 +206,9 @@ class ModalBarrier extends StatelessWidget {
   /// {@macro flutter.material.ModalBottomSheetRoute.barrierOnTapHint}
   final String? semanticsOnTapHint;
 
+  // NOTE MODIFIED add
+  static Widget Function(Widget child)? buildWrapper;
+
   @override
   Widget build(BuildContext context) {
     assert(!dismissible || semanticsLabel == null || debugCheckHasDirectionality(context));
@@ -262,7 +268,7 @@ class ModalBarrier extends StatelessWidget {
       );
     }
 
-    return BlockSemantics(
+    return (buildWrapper ?? ((x) => x))(BlockSemantics(
       child: ExcludeSemantics(
         excluding: excluding,
         child: _ModalBarrierGestureDetector(
@@ -270,7 +276,7 @@ class ModalBarrier extends StatelessWidget {
           child: barrier,
         ),
       ),
-    );
+    ));
   }
 }
 

@@ -63,9 +63,13 @@ class LocalFileComparator extends GoldenFileComparator with LocalComparisonOutpu
   /// directory in which [testFile] resides.
   ///
   /// The [testFile] URL must represent a file.
-  LocalFileComparator(Uri testFile, {path.Style? pathStyle})
+  // NOTE MODIFIED `this.`testFile
+  LocalFileComparator(this.testFile, {path.Style? pathStyle})
     : basedir = _getBasedir(testFile, pathStyle),
       _path = _getPath(pathStyle);
+
+  // NOTE MODIFIED ADD
+  final Uri testFile;
 
   static path.Context _getPath(path.Style? style) {
     return path.Context(style: style ?? path.Style.platform);

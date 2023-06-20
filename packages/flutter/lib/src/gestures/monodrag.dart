@@ -281,6 +281,8 @@ abstract class DragGestureRecognizer extends OneSequenceGestureRecognizer {
   int? _initialButtons;
   Matrix4? _lastTransform;
 
+  OffsetPair get initialPosition => _initialPosition; // NOTE MODIFIED add
+
   /// Distance moved in the global coordinate space of the screen in drag direction.
   ///
   /// If drag is only allowed along a defined axis, this value may be negative to

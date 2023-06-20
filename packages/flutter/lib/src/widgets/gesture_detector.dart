@@ -1481,10 +1481,15 @@ class RawGestureDetectorState extends State<RawGestureDetector> {
   void dispose() {
     for (final GestureRecognizer recognizer in _recognizers!.values) {
       recognizer.dispose();
+      onRecognizerDispose?.call(this, recognizer);
     }
     _recognizers = null;
     super.dispose();
   }
+
+  // NOTE MODIFIED add
+  static void Function(RawGestureDetectorState, GestureRecognizer)? onRecognizerInitializer;
+  static void Function(RawGestureDetectorState, GestureRecognizer)? onRecognizerDispose;
 
   void _syncAll(Map<Type, GestureRecognizerFactory> gestures) {
     assert(_recognizers != null);
@@ -1497,10 +1502,12 @@ class RawGestureDetectorState extends State<RawGestureDetector> {
       _recognizers![type] = oldRecognizers[type] ?? gestures[type]!.constructor();
       assert(_recognizers![type].runtimeType == type, 'GestureRecognizerFactory of type $type created a GestureRecognizer of type ${_recognizers![type].runtimeType}. The GestureRecognizerFactory must be specialized with the type of the class that it returns from its constructor method.');
       gestures[type]!.initializer(_recognizers![type]!);
+      onRecognizerInitializer?.call(this, _recognizers![type]!);
     }
     for (final Type type in oldRecognizers.keys) {
       if (!_recognizers!.containsKey(type)) {
         oldRecognizers[type]!.dispose();
+        onRecognizerDispose?.call(this, oldRecognizers[type]!);
       }
     }
   }

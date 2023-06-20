@@ -248,6 +248,7 @@ abstract class GestureRecognizer extends GestureArenaMember with DiagnosticableT
   /// recognizer looks for, like 'tap' or 'horizontal drag'.
   String get debugDescription;
 
+  static void Function(GestureRecognizer self, String name)? invokeCallbackPreExecute; // NOTE MODIFIED add
   /// Invoke a callback provided by the application, catching and logging any
   /// exceptions.
   ///
@@ -260,6 +261,7 @@ abstract class GestureRecognizer extends GestureArenaMember with DiagnosticableT
   @protected
   @pragma('vm:notify-debugger-on-exception')
   T? invokeCallback<T>(String name, RecognizerCallback<T> callback, { String Function()? debugReport }) {
+    invokeCallbackPreExecute?.call(this, name); // NOTE MODIFIED add
     T? result;
     try {
       assert(() {

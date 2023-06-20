@@ -3310,6 +3310,9 @@ class NavigatorState extends State<Navigator> with TickerProviderStateMixin, Res
   final Queue<_NavigatorObservation> _observedRouteAdditions = Queue<_NavigatorObservation>();
   final Queue<_NavigatorObservation> _observedRouteDeletions = Queue<_NavigatorObservation>();
 
+  // NOTE MODIFIED add
+  UnmodifiableListView<_RouteEntry> get history => UnmodifiableListView(_history);
+
   /// The [FocusScopeNode] for the [FocusScope] that encloses the topmost navigator.
   @Deprecated(
     'Use focusNode.enclosingScope! instead. '

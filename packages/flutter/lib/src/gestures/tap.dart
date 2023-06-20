@@ -335,6 +335,7 @@ abstract class BaseTapGestureRecognizer extends PrimaryPointerGestureRecognizer 
     properties.add(DiagnosticsProperty<int>('button', _down?.buttons, defaultValue: null));
     properties.add(FlagProperty('sentTapDown', value: _sentTapDown, ifTrue: 'sent tap down'));
   }
+  Offset? get finalPosition => _up?.position; // NOTE MODIFIED add, ref `debugFillProperties`'s `finalPosition`
 }
 
 /// Recognizes taps.

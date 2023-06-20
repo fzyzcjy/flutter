@@ -430,6 +430,7 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
     hitTestInView(result, position, platformDispatcher.implicitView!.viewId);
   }
 
+  static void Function(GestureBinding, PointerEvent, HitTestResult?)? dispatchEventPreExecute; // NOTE MODIFIED add
   /// Dispatch an event to [pointerRouter] and the path of a hit test result.
   ///
   /// The `event` is routed to [pointerRouter]. If the `hitTestResult` is not
@@ -441,6 +442,7 @@ mixin GestureBinding on BindingBase implements HitTestable, HitTestDispatcher, H
   @override // from HitTestDispatcher
   @pragma('vm:notify-debugger-on-exception')
   void dispatchEvent(PointerEvent event, HitTestResult? hitTestResult) {
+    dispatchEventPreExecute?.call(this, event, hitTestResult); // NOTE MODIFIED add
     assert(!locked);
     // No hit test information implies that this is a [PointerAddedEvent] or
     // [PointerRemovedEvent]. These events are specially routed here; other
