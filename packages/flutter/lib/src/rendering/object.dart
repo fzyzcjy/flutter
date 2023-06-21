@@ -331,11 +331,13 @@ class PaintingContext extends ClipContext {
     return _canvas!;
   }
 
+  static Canvas Function(ui.PictureRecorder)? createCanvas; // HACK
+
   void _startRecording() {
     assert(!_isRecording);
     _currentLayer = PictureLayer(estimatedBounds);
     _recorder = ui.PictureRecorder();
-    _canvas = Canvas(_recorder!);
+    _canvas = (createCanvas ?? Canvas.new)(_recorder!); // HACK
     _containerLayer.append(_currentLayer!);
   }
 
