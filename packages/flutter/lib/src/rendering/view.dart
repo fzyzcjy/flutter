@@ -225,6 +225,7 @@ class RenderView extends RenderObject with RenderObjectWithChildMixin<RenderBox>
   }
 
   static ui.SceneBuilder Function()? createSceneBuilder; // HACK
+  static void Function(ui.Scene)? onCallViewRender; // HACK, should make a custom subclass of FlutterView later
 
   /// Uploads the composited layer tree to the engine.
   ///
@@ -239,6 +240,7 @@ class RenderView extends RenderObject with RenderObjectWithChildMixin<RenderBox>
       if (automaticSystemUiAdjustment) {
         _updateSystemChrome();
       }
+      onCallViewRender?.call(scene); // HACK
       _view.render(scene);
       scene.dispose();
       assert(() {
