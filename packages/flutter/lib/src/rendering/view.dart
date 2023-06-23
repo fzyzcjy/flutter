@@ -224,6 +224,9 @@ class RenderView extends RenderObject with RenderObjectWithChildMixin<RenderBox>
     super.applyPaintTransform(child, transform);
   }
 
+  static ui.SceneBuilder Function()? createSceneBuilder; // HACK
+  static void Function(ui.Scene)? onCallViewRender; // HACK, should make a custom subclass of FlutterView later
+
   /// Uploads the composited layer tree to the engine.
   ///
   /// Actually causes the output of the rendering pipeline to appear on screen.
@@ -232,11 +235,12 @@ class RenderView extends RenderObject with RenderObjectWithChildMixin<RenderBox>
       Timeline.startSync('COMPOSITING');
     }
     try {
-      final ui.SceneBuilder builder = ui.SceneBuilder();
+      final ui.SceneBuilder builder = (createSceneBuilder ?? ui.SceneBuilder.new)();
       final ui.Scene scene = layer!.buildScene(builder);
       if (automaticSystemUiAdjustment) {
         _updateSystemChrome();
       }
+      onCallViewRender?.call(scene); // HACK
       _view.render(scene);
       scene.dispose();
       assert(() {

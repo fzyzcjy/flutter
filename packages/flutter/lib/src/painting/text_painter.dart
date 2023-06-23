@@ -1027,10 +1027,12 @@ class TextPainter {
     return _layoutCache!.paragraph.didExceedMaxLines;
   }
 
+  static ui.ParagraphBuilder Function(ui.ParagraphStyle)? createParagraphBuilder; // HACK
+
   // Creates a ui.Paragraph using the current configurations in this class and
   // assign it to _paragraph.
   ui.Paragraph _createParagraph(InlineSpan text) {
-    final ui.ParagraphBuilder builder = ui.ParagraphBuilder(_createParagraphStyle());
+    final ui.ParagraphBuilder builder = (createParagraphBuilder ?? ui.ParagraphBuilder.new)(_createParagraphStyle());
     text.build(builder, textScaleFactor: textScaleFactor, dimensions: _placeholderDimensions);
     assert(() {
       _debugMarkNeedsLayoutCallStack = null;
